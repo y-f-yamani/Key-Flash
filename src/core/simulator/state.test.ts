@@ -102,6 +102,29 @@ describe('virtual desktops', () => {
   });
 });
 
+describe('task view (Win+Tab)', () => {
+  it('toggles the overlay; any other action closes it', () => {
+    const open = run('win11.win-e', 'win11.win-tab');
+    expect(open.taskView).toBe(true);
+    expect(run('win11.win-e', 'win11.win-tab', 'win11.win-tab').taskView).toBe(false);
+    expect(run('win11.win-e', 'win11.win-tab', 'win11.win-i').taskView).toBe(false);
+  });
+});
+
+describe('switch window (Alt+Tab)', () => {
+  it('brings the previous window to the front', () => {
+    const state = run('win11.win-e', 'win11.win-i', 'win11.alt-tab');
+    expect(focusedWindow(state)?.app).toBe('explorer');
+    const again = applySimAction(state, { kind: 'switch-window' });
+    expect(focusedWindow(again)?.app).toBe('settings');
+  });
+
+  it('is a no-op with fewer than two visible windows', () => {
+    const state = run('win11.win-e', 'win11.alt-tab');
+    expect(focusedWindow(state)?.app).toBe('explorer');
+  });
+});
+
 describe('snip', () => {
   it('Win+Shift+S raises the one-shot flash flag, cleared by the next action', () => {
     const flashed = run('win11.win-shift-s');

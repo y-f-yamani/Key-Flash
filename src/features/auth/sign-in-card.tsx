@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useState, useSyncExternalStore, type FormEvent } from 'react';
 import { Mail } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,12 +11,24 @@ import { useI18n } from '@/lib/i18n/provider';
 
 type Status = 'idle' | 'sending' | 'sent' | 'error';
 
+const noopSubscribe = () => () => {};
+
+/** Auth error forwarded by /auth/callback (?error=...) — SSR-safe read. */
+function useCallbackError(): string | null {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => new URLSearchParams(window.location.search).get('error'),
+    () => null,
+  );
+}
+
 /** Email magic-link + OAuth sign-in. Rendered only when cloud is enabled. */
 export function SignInCard() {
   const { locale, dict } = useI18n();
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState<string | null>(null);
+  const callbackError = useCallbackError();
 
   const callbackUrl = () => `${window.location.origin}/auth/callback?next=/${locale}`;
 
@@ -80,6 +92,11 @@ export function SignInCard() {
 
         {status === 'sent' && <Badge variant="success">{dict.auth.linkSent}</Badge>}
         {status === 'error' && error && <Badge variant="danger">{error}</Badge>}
+        {callbackError && status === 'idle' && (
+          <Badge variant="danger" className="whitespace-normal text-start" data-testid="auth-error">
+            {callbackError}
+          </Badge>
+        )}
 
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="h-px flex-1 bg-border" />

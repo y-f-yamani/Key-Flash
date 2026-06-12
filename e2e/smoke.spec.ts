@@ -73,6 +73,11 @@ test.describe('smoke', () => {
     await expect(page.getByText('Settings', { exact: true })).toBeVisible({ timeout: 5_000 });
     await page.keyboard.press('Control+Alt+i');
     await expect(page.getByTestId('sim-window-settings')).toBeVisible();
+
+    // Mission 3 (Alt+Tab) switches focus back to Explorer.
+    await expect(page.getByText('Switch apps', { exact: true })).toBeVisible({ timeout: 5_000 });
+    await page.keyboard.press('Alt+Tab');
+    await expect(page.getByTestId('mission-done')).toBeVisible();
   });
 
   test('survival mode shows lives and ends after three misses', async ({ page }) => {

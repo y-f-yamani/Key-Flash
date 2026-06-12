@@ -48,6 +48,8 @@ export function SimulatorDesktop({ state, snipSeq }: { state: SimState; snipSeq:
         ))}
       </div>
 
+      {state.taskView && <TaskView state={state} />}
+
       {state.panel && <Panel panel={state.panel} />}
 
       {state.snipFlash && (
@@ -143,7 +145,7 @@ function Window({ w, index, focused }: { w: SimWindow; index: number; focused: b
     <div
       data-testid={`sim-window-${w.app}`}
       className={cn(
-        'absolute flex flex-col overflow-hidden rounded-lg border border-white/20 bg-card text-card-foreground shadow-2xl transition-all duration-300',
+        'animate-window-in absolute flex flex-col overflow-hidden rounded-lg border border-white/20 bg-card text-card-foreground shadow-2xl transition-all duration-300',
         position === '' && 'h-3/5 w-1/2',
         position,
         focused ? 'opacity-100' : 'opacity-80',
@@ -180,6 +182,63 @@ function Window({ w, index, focused }: { w: SimWindow; index: number; focused: b
           </ul>
         )}
         {w.app === 'notepad' && <p className="font-mono">The quick brown fox…</p>}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Win+Tab Task View: every window on the active desktop (minimized included,
+ * like real Windows) rendered as cards fanned on top of each other, focused
+ * one on top.
+ */
+function TaskView({ state }: { state: SimState }) {
+  const windows = state.windows.filter((w) => w.desktop === state.activeDesktop);
+
+  return (
+    <div
+      data-testid="sim-taskview"
+      className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-black/50 pb-12 backdrop-blur-sm"
+    >
+      <div className="relative h-2/3 w-2/3">
+        {windows.length === 0 && (
+          <p className="absolute inset-0 flex items-center justify-center text-sm text-white/80">
+            Task View
+          </p>
+        )}
+        {windows.map((w, i) => {
+          const { label, icon: Icon } = APP_META[w.app];
+          const offset = i - (windows.length - 1) / 2;
+          return (
+            <div
+              key={`${w.app}-${w.desktop}`}
+              className="animate-window-in absolute inset-x-0 top-1/2 mx-auto flex h-3/5 w-3/5 -translate-y-1/2 flex-col overflow-hidden rounded-lg border border-white/30 bg-card text-card-foreground shadow-2xl transition-all"
+              style={{
+                transform: `translateY(-50%) translateX(${offset * 14}%) rotate(${offset * 4}deg)`,
+                zIndex: i,
+              }}
+            >
+              <div className="flex items-center gap-2 border-b border-border bg-muted/60 px-3 py-1.5 text-xs font-semibold">
+                <Icon className="size-3.5 text-primary" aria-hidden /> {label}
+                {w.state === 'minimized' && (
+                  <span className="text-muted-foreground">·</span>
+                )}
+              </div>
+              <div className="flex-1 bg-card/60" />
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex items-center gap-2">
+        {Array.from({ length: state.desktopCount }).map((_, i) => (
+          <span
+            key={i}
+            className={cn(
+              'h-8 w-12 rounded-md border border-white/40 bg-white/10',
+              i === state.activeDesktop && 'border-white bg-white/30',
+            )}
+          />
+        ))}
       </div>
     </div>
   );

@@ -29,6 +29,8 @@ export interface SimState {
   readonly panel: SimPanel;
   /** Win+D state — windows hidden, wallpaper visible. */
   readonly desktopShown: boolean;
+  /** Win+Tab — Task View overlay with the open windows stacked. */
+  readonly taskView: boolean;
   /** One-shot flag the UI uses to flash the snip overlay. */
   readonly snipFlash: boolean;
 }
@@ -39,6 +41,7 @@ export const INITIAL_SIM_STATE: SimState = {
   activeDesktop: 0,
   panel: null,
   desktopShown: false,
+  taskView: false,
   snipFlash: false,
 };
 
@@ -52,6 +55,8 @@ export type SimAction =
   | { kind: 'open-panel'; panel: Exclude<SimPanel, null> }
   | { kind: 'new-desktop' }
   | { kind: 'switch-desktop'; direction: 1 | -1 }
+  | { kind: 'task-view' }
+  | { kind: 'switch-window' }
   | { kind: 'snip' };
 
 /** Windows the user can currently see (active desktop, not minimized). */
@@ -69,9 +74,21 @@ export function focusedWindow(state: SimState): SimWindow | null {
 
 export function applySimAction(state: SimState, action: SimAction): SimState {
   // Any interaction dismisses transient surfaces.
-  const base: SimState = { ...state, panel: null, snipFlash: false };
+  const base: SimState = { ...state, panel: null, snipFlash: false, taskView: false };
 
   switch (action.kind) {
+    case 'task-view':
+      return { ...base, taskView: !state.taskView };
+
+    case 'switch-window': {
+      // Alt+Tab: previous window in the z-order comes to the front.
+      const visible = visibleWindows(state);
+      if (visible.length < 2) return base;
+      const focused = visible[visible.length - 1];
+      const rest = state.windows.filter((w) => w !== focused);
+      return { ...base, windows: [focused, ...rest] };
+    }
+
     case 'open-app': {
       const existing = state.windows.find(
         (w) => w.app === action.app && w.desktop === state.activeDesktop,
@@ -168,6 +185,8 @@ const SHORTCUT_ACTIONS: Record<string, SimAction> = {
   'win11.win-ctrl-d': { kind: 'new-desktop' },
   'win11.win-ctrl-right': { kind: 'switch-desktop', direction: 1 },
   'win11.win-ctrl-left': { kind: 'switch-desktop', direction: -1 },
+  'win11.win-tab': { kind: 'task-view' },
+  'win11.alt-tab': { kind: 'switch-window' },
   'win11.win-shift-s': { kind: 'snip' },
 };
 

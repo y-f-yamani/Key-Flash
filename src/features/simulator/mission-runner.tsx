@@ -24,15 +24,19 @@ import { SimulatorDesktop } from './desktop';
 /**
  * Mission script: each step is a catalog shortcut the user must physically
  * press; the simulated desktop reacts like Windows. Order tells a story —
- * open apps, arrange them, peek at the desktop, end with a screenshot.
+ * open apps, switch between them (Tab shortcuts!), arrange them, tour the
+ * desktops, end with a screenshot. Alt+Tab and Win+Tab work with the
+ * Ctrl+Alt stand-in or, best, the real keys in ⊞ fullscreen mode.
  */
 const MISSION_SHORTCUTS = [
   'win11.win-e',
   'win11.win-i',
+  'win11.alt-tab',
   'win11.win-up',
   'win11.win-left',
   'win11.win-right',
   'win11.win-down',
+  'win11.win-tab',
   'win11.win-d',
   'win11.win-v',
   'win11.win-ctrl-d',
