@@ -36,6 +36,8 @@ export interface MatchView {
   id: string;
   seed: number;
   status: MatchStatus;
+  /** 'duel' = shortcut duel, 'typing' = typing duel. */
+  mode: string;
   /** Epoch ms; play begins at startedAt + countdown. */
   startedAt: number | null;
   me: MatchPlayerView | null;

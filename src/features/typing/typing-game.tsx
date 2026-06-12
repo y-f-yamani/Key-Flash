@@ -234,7 +234,7 @@ export function TypingGame() {
 }
 
 /** The text being typed: correct/wrong/pending chars with a caret. */
-function TypingText({ session, locale }: { session: TypingSession; locale: string }) {
+export function TypingText({ session, locale }: { session: TypingSession; locale: string }) {
   // Render a window around the caret, not the endless target.
   const WINDOW = 360;
   const start = Math.max(0, session.position - 120);

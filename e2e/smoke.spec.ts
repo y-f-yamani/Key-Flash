@@ -96,6 +96,12 @@ test.describe('smoke', () => {
     await expect(page.getByText('Sign in to play ranked duels.')).toBeVisible();
   });
 
+  test('typing duel page exists and gates behind sign-in', async ({ page }) => {
+    await page.goto('/en/typing/duel');
+    await expect(page.getByRole('heading', { name: 'Typing Duel' })).toBeVisible();
+    await expect(page.getByText('Sign in to play ranked duels.')).toBeVisible();
+  });
+
   test('survival mode shows lives and ends after three misses', async ({ page }) => {
     await page.goto('/en/arena/survival');
     await removeDevOverlay(page);

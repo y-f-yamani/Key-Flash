@@ -12,9 +12,16 @@ import type { MatchPlayerView, MatchStatus, MatchView } from './schemas';
  * submits, 0 while waiting for the opponent, and 1/2 once finalized.
  */
 
-const MATCH_DOMAIN = 'win11';
 const PENDING_MAX_AGE_MS = 2 * 60_000;
 const ABANDON_AFTER_MS = 5 * 60_000;
+
+/** The two ranked queues. Ratings live on separate ladders per domain. */
+export type DuelKind = 'shortcut' | 'typing';
+
+export const DUEL_KINDS: Record<DuelKind, { domain: string; mode: string }> = {
+  shortcut: { domain: 'win11', mode: 'duel' },
+  typing: { domain: 'typing', mode: 'typing' },
+};
 
 interface PlayerRow {
   match_id: string;
@@ -32,27 +39,34 @@ interface MatchRow {
   seed: number;
   status: MatchStatus;
   started_at: string | null;
+  domain_slug: string;
+  mode: string;
 }
 
 export async function joinOrCreateMatch(
   service: SupabaseClient,
   userId: string,
+  kind: DuelKind,
 ): Promise<{ matchId: string }> {
-  // Already queued or playing? Return that match (idempotent join).
+  const { domain, mode } = DUEL_KINDS[kind];
+
+  // Already queued or playing in this queue? Return that match (idempotent).
   const { data: mine } = await service
     .from('match_players')
-    .select('match_id, matches!inner(status)')
+    .select('match_id, matches!inner(status, mode)')
     .eq('user_id', userId)
+    .eq('matches.mode', mode)
     .in('matches.status', ['pending', 'active'])
     .limit(1);
   if (mine && mine.length > 0) return { matchId: mine[0].match_id as string };
 
-  // Find the oldest fresh pending match from someone else.
+  // Find the oldest fresh pending match from someone else in this queue.
   const cutoff = new Date(Date.now() - PENDING_MAX_AGE_MS).toISOString();
   const { data: open } = await service
     .from('matches')
     .select('id, created_at, match_players(user_id)')
     .eq('status', 'pending')
+    .eq('mode', mode)
     .gte('created_at', cutoff)
     .order('created_at', { ascending: true })
     .limit(10);
@@ -81,8 +95,8 @@ export async function joinOrCreateMatch(
   const matchId = crypto.randomUUID();
   await service.from('matches').insert({
     id: matchId,
-    domain_slug: MATCH_DOMAIN,
-    mode: 'duel',
+    domain_slug: domain,
+    mode,
     seed: Math.floor(Math.random() * 2_147_483_647),
     status: 'pending',
   });
@@ -149,6 +163,7 @@ export async function getMatchView(
     id: match.id,
     seed: Number(match.seed),
     status: match.status,
+    mode: match.mode,
     startedAt: match.started_at ? new Date(match.started_at).getTime() : null,
     me: players.filter((p) => p.user_id === userId).map(view)[0] ?? null,
     opponent: players.filter((p) => p.user_id !== userId).map(view)[0] ?? null,
@@ -196,13 +211,16 @@ export async function finalizeMatch(service: SupabaseClient, matchId: string): P
     .select('id');
   if (!locked || locked.length === 0) return; // someone else finalized
 
+  const match = await loadMatch(service, matchId);
+  const ratingDomain = match?.domain_slug ?? 'win11';
+
   const players = await loadPlayers(service, matchId);
   if (players.length !== 2) return;
   const [pa, pb] = players;
 
   const [ratingA, ratingB] = await Promise.all([
-    loadRating(service, pa.user_id),
-    loadRating(service, pb.user_id),
+    loadRating(service, pa.user_id, ratingDomain),
+    loadRating(service, pb.user_id, ratingDomain),
   ]);
 
   const outcome = duelOutcome(
@@ -213,8 +231,8 @@ export async function finalizeMatch(service: SupabaseClient, matchId: string): P
   await Promise.all([
     persistPlayerOutcome(service, matchId, pa.user_id, outcome.a),
     persistPlayerOutcome(service, matchId, pb.user_id, outcome.b),
-    persistRating(service, pa.user_id, outcome.a.ratingAfter),
-    persistRating(service, pb.user_id, outcome.b.ratingAfter),
+    persistRating(service, pa.user_id, outcome.a.ratingAfter, ratingDomain),
+    persistRating(service, pb.user_id, outcome.b.ratingAfter, ratingDomain),
     service.rpc('award_xp', {
       p_user_id: pa.user_id,
       p_amount: outcome.a.xp,
@@ -233,7 +251,7 @@ export async function finalizeMatch(service: SupabaseClient, matchId: string): P
 async function loadMatch(service: SupabaseClient, matchId: string): Promise<MatchRow | null> {
   const { data } = await service
     .from('matches')
-    .select('id, seed, status, started_at')
+    .select('id, seed, status, started_at, domain_slug, mode')
     .eq('id', matchId)
     .maybeSingle();
   return (data as MatchRow | null) ?? null;
@@ -248,12 +266,16 @@ async function loadPlayers(service: SupabaseClient, matchId: string): Promise<Pl
   return (data as unknown as PlayerRow[]) ?? [];
 }
 
-async function loadRating(service: SupabaseClient, userId: string): Promise<Rating> {
+async function loadRating(
+  service: SupabaseClient,
+  userId: string,
+  domain: string,
+): Promise<Rating> {
   const { data } = await service
     .from('ratings')
     .select('rating, rd, volatility')
     .eq('user_id', userId)
-    .eq('domain_slug', MATCH_DOMAIN)
+    .eq('domain_slug', domain)
     .maybeSingle();
   return data ? { rating: data.rating, rd: data.rd, volatility: data.volatility } : INITIAL_RATING;
 }
@@ -262,10 +284,11 @@ async function persistRating(
   service: SupabaseClient,
   userId: string,
   rating: Rating,
+  domain: string,
 ): Promise<void> {
   await service.from('ratings').upsert({
     user_id: userId,
-    domain_slug: MATCH_DOMAIN,
+    domain_slug: domain,
     rating: rating.rating,
     rd: rating.rd,
     volatility: rating.volatility,

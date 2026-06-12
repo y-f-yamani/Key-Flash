@@ -191,6 +191,12 @@ export const en = {
     signInFirst: 'Sign in to play ranked duels.',
   },
 
+  typingDuel: {
+    title: 'Typing Duel',
+    desc: 'Live 1v1 typing race — same English text, 45 seconds, and you watch each other type in real time. Glicko-2 rated.',
+    cta: 'Race a human',
+  },
+
   tiers: {
     bronze: 'Bronze',
     silver: 'Silver',

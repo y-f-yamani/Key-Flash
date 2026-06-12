@@ -1,13 +1,15 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { cancelPending, joinOrCreateMatch } from '@/features/multiplayer/match-service';
 import { problem } from '@/lib/http';
 import { getServerSupabase, getServiceSupabase } from '@/lib/supabase/server';
 
-/** POST = enter the duel queue (idempotent). DELETE = leave it. */
-export async function POST() {
+/** POST = enter a duel queue (idempotent). DELETE = leave all queues. */
+export async function POST(request: NextRequest) {
   const ctx = await requireUser();
   if ('response' in ctx) return ctx.response;
-  const { matchId } = await joinOrCreateMatch(ctx.service, ctx.userId);
+  const body = await request.json().catch(() => ({}));
+  const kind = body?.kind === 'typing' ? 'typing' : 'shortcut';
+  const { matchId } = await joinOrCreateMatch(ctx.service, ctx.userId, kind);
   return NextResponse.json({ matchId }, { status: 201 });
 }
 
