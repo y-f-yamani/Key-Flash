@@ -51,3 +51,12 @@ sprint and it appears on `/en/arena/leaderboard`.
 No env vars set ⇒ everything cloud-related hides itself and the app stays
 fully local-first. Email magic-link sign-in works out of the box (Supabase
 ships a default SMTP for low volume).
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| 404 after GitHub authorize | App proxy intercepted `/auth/callback` | Fixed in code (proxy excludes `/auth`) |
+| Lands on `/en` signed out, no error | GitHub OAuth App callback URL points at your app instead of Supabase | Set it to `https://<ref>.supabase.co/auth/v1/callback` |
+| **"Unable to exchange external code: …"** | GitHub rejected Supabase's credential exchange — Client **Secret** in Supabase is wrong, stale, or from a different OAuth app | GitHub OAuth App → *Generate a new client secret* → copy it immediately → Supabase → Auth → Providers → GitHub → paste **both** Client ID and the new secret → Save. Watch for stray spaces; secrets are shown only once; make sure it's an *OAuth App*, not a *GitHub App* |
+| Error after fixing secret | Old code reused | Always start a fresh sign-in attempt from `/sign-in` |

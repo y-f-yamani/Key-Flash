@@ -1,17 +1,20 @@
 'use client';
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { Maximize2, Minimize2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n/provider';
 
 /**
- * Real ⊞ key capture via the Keyboard Lock API (Chromium/Edge, fullscreen
- * only) — the upgrade path promised in ADR-0004. While locked, Win-combos
- * reach the page and the OS stays quiet, so users can drill the *actual*
- * keys. The Ctrl+Alt stand-in keeps working in parallel (matcher accepts
- * both), so this is strictly additive.
+ * Real-key capture via the Keyboard Lock API (Chromium/Edge, fullscreen
+ * only) — the upgrade path promised in ADR-0004. We lock ALL keys, not just
+ * Meta: Alt+Tab and Win+Tab are OS-owned too and only arrive under a full
+ * lock. While locked, the OS stays quiet and genuine Windows shortcuts reach
+ * the page. The Ctrl+Alt stand-in keeps working in parallel.
+ *
+ * Lock state lives in a module-level store so every component (hints,
+ * mission runner) sees the same value via useSyncExternalStore.
  */
 
 interface KeyboardLock {
@@ -25,7 +28,19 @@ function keyboardLockApi(): KeyboardLock | null {
   return keyboard?.lock && keyboard.unlock ? (keyboard as KeyboardLock) : null;
 }
 
-const noopSubscribe = () => () => {};
+let lockActive = false;
+const listeners = new Set<() => void>();
+
+function setLockActive(next: boolean): void {
+  if (lockActive === next) return;
+  lockActive = next;
+  for (const notify of listeners) notify();
+}
+
+function subscribe(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
 
 export function useWinKeyMode(): {
   supported: boolean;
@@ -33,21 +48,25 @@ export function useWinKeyMode(): {
   enable(): Promise<void>;
   disable(): void;
 } {
-  // SSR-safe support detection without hydration mismatch.
   const supported = useSyncExternalStore(
-    noopSubscribe,
+    subscribe,
     () => keyboardLockApi() !== null,
     () => false,
   );
-  const [active, setActive] = useState(false);
+  const active = useSyncExternalStore(
+    subscribe,
+    () => lockActive,
+    () => false,
+  );
 
   const enable = useCallback(async () => {
     const api = keyboardLockApi();
     if (!api) return;
     try {
       await document.documentElement.requestFullscreen();
-      await api.lock(['MetaLeft', 'MetaRight']);
-      setActive(true);
+      // No key list = lock everything available (incl. Alt+Tab, Win+Tab).
+      await api.lock();
+      setLockActive(true);
     } catch {
       // User denied fullscreen or lock failed — stand-in keys still work.
     }
@@ -56,22 +75,19 @@ export function useWinKeyMode(): {
   const disable = useCallback(() => {
     keyboardLockApi()?.unlock();
     if (document.fullscreenElement) void document.exitFullscreen();
-    setActive(false);
+    setLockActive(false);
   }, []);
 
-  // Leaving fullscreen (Esc, F11, task switch) always ends the mode.
+  // Leaving fullscreen (hold Esc, F11, task switch) always ends the mode.
   useEffect(() => {
     function onFullscreenChange() {
       if (!document.fullscreenElement) {
         keyboardLockApi()?.unlock();
-        setActive(false);
+        setLockActive(false);
       }
     }
     document.addEventListener('fullscreenchange', onFullscreenChange);
-    return () => {
-      document.removeEventListener('fullscreenchange', onFullscreenChange);
-      keyboardLockApi()?.unlock();
-    };
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
   }, []);
 
   return { supported, active, enable, disable };

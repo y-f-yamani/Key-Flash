@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Check } from 'lucide-react';
+import { Check, SkipForward } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,7 +17,7 @@ import {
 } from '@/core/simulator';
 import { useProgress } from '@/features/progress';
 import { useKeyCapture } from '@/features/practice/use-key-capture';
-import { WinKeyHint } from '@/features/practice/win-key-mode';
+import { WinKeyHint, useWinKeyMode } from '@/features/practice/win-key-mode';
 import { useI18n } from '@/lib/i18n/provider';
 import { SimulatorDesktop } from './desktop';
 
@@ -46,6 +46,12 @@ const MISSION_SHORTCUTS = [
 
 const SUCCESS_PAUSE_MS = 900;
 
+/**
+ * Tab combos are OS-owned: without the full Keyboard Lock (⊞ fullscreen
+ * mode) the browser never receives them, so these missions offer a skip.
+ */
+const LOCK_REQUIRED = new Set(['win11.alt-tab', 'win11.win-tab']);
+
 export function MissionRunner() {
   const { locale, dict } = useI18n();
   const { recordDrill, completeLesson } = useProgress();
@@ -58,6 +64,8 @@ export function MissionRunner() {
 
   const done = missionIndex >= MISSION_SHORTCUTS.length;
   const shortcut = done ? null : registry.getShortcut(MISSION_SHORTCUTS[missionIndex]);
+  const { active: winKeyActive } = useWinKeyMode();
+  const offerSkip = !done && !!shortcut && LOCK_REQUIRED.has(shortcut.id) && !winKeyActive;
 
   const handleResult = useCallback(
     ({ correct, reactionMs }: { correct: boolean; reactionMs: number }) => {
@@ -106,6 +114,18 @@ export function MissionRunner() {
     setJustSucceeded(false);
   }
 
+  /** Skip an OS-owned mission without XP — nobody gets stuck outside ⊞ mode. */
+  function skipMission() {
+    const current = registry.getShortcut(MISSION_SHORTCUTS[missionIndex]);
+    const action = current ? actionForShortcut(current.id) : null;
+    if (action) {
+      // The desktop still reacts, so the story stays coherent.
+      if (action.kind === 'snip') setSnipSeq((n) => n + 1);
+      setSimState((state) => applySimAction(state, action));
+    }
+    setJustSucceeded(true);
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <Card>
@@ -144,6 +164,19 @@ export function MissionRunner() {
                     <KeyCombo keys={shortcut.keys} />
                   )}
                 </div>
+                {offerSkip && !justSucceeded && (
+                  <div className="flex items-center justify-between gap-2 rounded-lg bg-muted px-3 py-2 text-xs">
+                    <span>{dict.simulator.needsWinMode}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={skipMission}
+                      data-testid="mission-skip"
+                    >
+                      <SkipForward className="size-3.5" /> {dict.simulator.skip}
+                    </Button>
+                  </div>
+                )}
                 <WinKeyHint />
               </>
             )
