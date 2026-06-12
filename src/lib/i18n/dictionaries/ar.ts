@@ -168,6 +168,35 @@ export const ar: Dictionary = {
     localNote: 'يُرفع تقدمك المحلي تلقائيًا بعد تسجيل الدخول.',
   },
 
+  duel: {
+    title: 'مبارزة مصنّفة',
+    desc: 'مباشر ١ ضد ١ — نفس الاختصارات، نفس البذرة، ٤٥ ثانية. تصنيف Glicko-2.',
+    findOpponent: 'ابحث عن خصم',
+    searching: 'جارٍ البحث عن خصم…',
+    cancelSearch: 'إلغاء',
+    you: 'أنت',
+    opponent: 'الخصم',
+    waitingOpponent: 'بانتظار أن ينهي خصمك…',
+    victory: 'انتصار',
+    defeat: 'هزيمة',
+    draw: 'تعادل',
+    ratingLabel: 'التصنيف',
+    playAgain: 'مبارزة أخرى',
+    abandoned: 'أُهملت المباراة — لم ينهِ أحد. لا تغيير في التصنيف.',
+    signInFirst: 'سجّل الدخول لخوض مبارزات مصنّفة.',
+  },
+
+  tiers: {
+    bronze: 'برونزي',
+    silver: 'فضي',
+    gold: 'ذهبي',
+    platinum: 'بلاتيني',
+    diamond: 'ماسي',
+    master: 'أستاذ',
+    grandmaster: 'أستاذ كبير',
+    legend: 'أسطورة ويندوز',
+  },
+
   leaderboard: {
     title: 'لوحة الصدارة العالمية',
     subtitle: 'أفضل سباقات الاختصارات حول العالم.',

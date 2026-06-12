@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Gauge, Heart, Link2, Skull, Target, Timer, Trophy } from 'lucide-react';
+import { Gauge, Heart, Link2, Skull, Swords, Target, Timer, Trophy } from 'lucide-react';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getDictionary, isLocale } from '@/lib/i18n';
 
@@ -56,6 +56,16 @@ export default async function ArenaPage({
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Link href={`/${locale}/arena/duel`}>
+          <Card className="h-full border-primary transition-colors hover:shadow-lg">
+            <CardHeader>
+              <Swords className="size-7 text-danger" aria-hidden />
+              <CardTitle>{dict.duel.title}</CardTitle>
+              <CardDescription>{dict.duel.desc}</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+
         {modes.map((mode) => (
           <Link key={mode.slug} href={`/${locale}/arena/${mode.slug}`}>
             <Card className="h-full border-primary/50 transition-colors hover:border-primary">

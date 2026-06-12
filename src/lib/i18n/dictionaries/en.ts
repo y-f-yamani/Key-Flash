@@ -173,6 +173,35 @@ export const en = {
     localNote: 'Your local progress uploads automatically after you sign in.',
   },
 
+  duel: {
+    title: 'Ranked Duel',
+    desc: 'Live 1v1 — same shortcuts, same seed, 45 seconds. Glicko-2 rated.',
+    findOpponent: 'Find opponent',
+    searching: 'Searching for an opponent…',
+    cancelSearch: 'Cancel',
+    you: 'You',
+    opponent: 'Opponent',
+    waitingOpponent: 'Waiting for your opponent to finish…',
+    victory: 'VICTORY',
+    defeat: 'Defeat',
+    draw: 'Draw',
+    ratingLabel: 'Rating',
+    playAgain: 'Duel again',
+    abandoned: 'Match abandoned — nobody finished. No rating change.',
+    signInFirst: 'Sign in to play ranked duels.',
+  },
+
+  tiers: {
+    bronze: 'Bronze',
+    silver: 'Silver',
+    gold: 'Gold',
+    platinum: 'Platinum',
+    diamond: 'Diamond',
+    master: 'Master',
+    grandmaster: 'Grandmaster',
+    legend: 'Windows Legend',
+  },
+
   leaderboard: {
     title: 'Global leaderboard',
     subtitle: 'Top Shortcut Sprint runs worldwide.',
