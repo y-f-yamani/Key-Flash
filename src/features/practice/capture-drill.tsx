@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Check, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ interface CaptureDrillProps {
 export function CaptureDrill({ shortcut, onResult }: CaptureDrillProps) {
   const { locale, dict } = useI18n();
   const [result, setResult] = useState<CaptureResult | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const { stepIndex, needsMetaRemap } = useKeyCapture({
     keys: shortcut.keys,
@@ -30,13 +31,20 @@ export function CaptureDrill({ shortcut, onResult }: CaptureDrillProps) {
     onResult: setResult,
   });
 
+  // Effects run in declaration order, so this fires after useKeyCapture has
+  // attached its listener — "armed" in the DOM means key presses will land.
+  // Tests (and tools) wait on it instead of racing the mount.
+  useEffect(() => {
+    cardRef.current?.setAttribute('data-armed', String(result === null));
+  }, [result]);
+
   function next() {
     if (!result) return;
     onResult({ correct: result.correct, reactionMs: result.reactionMs });
   }
 
   return (
-    <Card data-testid="capture-drill">
+    <Card ref={cardRef} data-testid="capture-drill">
       <CardContent className="flex flex-col items-center gap-6 p-8 text-center">
         <h2 className="text-2xl font-bold">{shortcut.name[locale]}</h2>
         <p className="text-muted-foreground">{shortcut.description[locale]}</p>

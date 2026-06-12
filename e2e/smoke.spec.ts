@@ -20,9 +20,11 @@ test.describe('smoke', () => {
     await page.getByText('Essentials').click();
     await expect(page).toHaveURL(/\/en\/learn\/essentials$/);
     await page.getByRole('button', { name: 'Start lesson' }).first().click();
+    await expect(page).toHaveURL(/\/en\/learn\/essentials\/0$/);
 
-    // First drill of Essentials lesson 1 is Copy (Ctrl+C) — press the real keys.
-    await expect(page.getByText('Copy', { exact: true })).toBeVisible();
+    // First drill of Essentials lesson 1 is Copy (Ctrl+C) — press the real
+    // keys, but only once the drill reports its listener is attached.
+    await expect(page.getByTestId('capture-drill')).toHaveAttribute('data-armed', 'true');
     await page.keyboard.press('Control+c');
     await expect(page.getByText('Correct!')).toBeVisible();
   });
