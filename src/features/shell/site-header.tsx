@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Keyboard } from 'lucide-react';
+import { AuthButton } from '@/features/auth/auth-button';
 import { useI18n } from '@/lib/i18n/provider';
 import { cn } from '@/lib/utils';
 import { LocaleSwitcher } from './locale-switcher';
@@ -45,6 +46,7 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2">
           <PlayerChip />
+          <AuthButton />
           <ThemeToggle />
           <LocaleSwitcher />
         </div>

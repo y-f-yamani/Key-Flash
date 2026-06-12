@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Gauge, Heart, Skull, Swords, Target, Timer } from 'lucide-react';
+import { Gauge, Heart, Skull, Swords, Target, Timer, Trophy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getDictionary, isLocale } from '@/lib/i18n';
@@ -37,6 +37,16 @@ export default async function ArenaPage({
               <Gauge className="size-7 text-primary" aria-hidden />
               <CardTitle>{dict.arena.sprintTitle}</CardTitle>
               <CardDescription>{dict.arena.sprintDesc}</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+
+        <Link href={`/${locale}/arena/leaderboard`}>
+          <Card className="h-full transition-colors hover:border-primary">
+            <CardHeader>
+              <Trophy className="size-7 text-warning" aria-hidden />
+              <CardTitle>{dict.leaderboard.title}</CardTitle>
+              <CardDescription>{dict.leaderboard.subtitle}</CardDescription>
             </CardHeader>
           </Card>
         </Link>

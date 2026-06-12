@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { notFound } from 'next/navigation';
+import { AuthProvider } from '@/features/auth/provider';
 import { ProgressProvider } from '@/features/progress';
 import { SiteHeader } from '@/features/shell/site-header';
 import { THEME_INIT_SCRIPT } from '@/features/shell/theme-toggle';
@@ -40,10 +41,12 @@ export default async function LocaleLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <I18nProvider locale={locale} dict={dict}>
-          <ProgressProvider>
-            <SiteHeader />
-            <main className="mx-auto w-full max-w-6xl px-4 py-8">{children}</main>
-          </ProgressProvider>
+          <AuthProvider>
+            <ProgressProvider>
+              <SiteHeader />
+              <main className="mx-auto w-full max-w-6xl px-4 py-8">{children}</main>
+            </ProgressProvider>
+          </AuthProvider>
         </I18nProvider>
       </body>
     </html>

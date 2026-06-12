@@ -107,6 +107,28 @@ export const ar: Dictionary = {
     noData: 'أكمل درسًا لترى إحصاءاتك.',
   },
 
+  auth: {
+    signIn: 'تسجيل الدخول',
+    signOut: 'تسجيل الخروج',
+    signInTitle: 'سجّل الدخول إلى كي ماستر',
+    signInSubtitle: 'زامن تقدمك بين الأجهزة ونافس في لوحات الصدارة العالمية.',
+    emailLabel: 'البريد الإلكتروني',
+    emailPlaceholder: 'you@example.com',
+    sendLink: 'أرسل رابط الدخول',
+    linkSent: 'تفقد بريدك — أُرسل رابط الدخول.',
+    orContinueWith: 'أو تابع باستخدام',
+    localNote: 'يُرفع تقدمك المحلي تلقائيًا بعد تسجيل الدخول.',
+  },
+
+  leaderboard: {
+    title: 'لوحة الصدارة العالمية',
+    subtitle: 'أفضل سباقات الاختصارات حول العالم.',
+    rank: 'المرتبة',
+    player: 'اللاعب',
+    empty: 'لا سباقات بعد — كن الأول.',
+    signInToCompete: 'سجّل الدخول لإرسال سباقاتك إلى لوحة الصدارة.',
+  },
+
   a11y: {
     toggleTheme: 'تبديل الوضع الداكن',
     switchLanguage: 'تغيير اللغة',

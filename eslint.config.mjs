@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "coverage/**",
+    "playwright-report/**",
+    "test-results/**",
   ]),
   {
     // Architecture boundary (ADR-0001): src/core is pure TypeScript and must

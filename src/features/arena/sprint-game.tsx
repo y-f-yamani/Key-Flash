@@ -16,9 +16,11 @@ import {
   type DrillEvent,
   type SprintResult,
 } from '@/core/scoring';
+import { useOptionalAuth } from '@/features/auth/provider';
 import { useProgress } from '@/features/progress';
 import { useKeyCapture } from '@/features/practice/use-key-capture';
 import { useI18n } from '@/lib/i18n/provider';
+import { submitSprintRun } from './submit-run';
 
 type Phase = 'idle' | 'running' | 'finished';
 
@@ -36,6 +38,8 @@ interface FinishedRun {
 export function SprintGame({ domainSlug }: { domainSlug: string }) {
   const { dict, locale } = useI18n();
   const { ready, state, completeSprint } = useProgress();
+  const auth = useOptionalAuth();
+  const signedIn = Boolean(auth?.session);
 
   const pool = useMemo(
     () =>
@@ -81,14 +85,22 @@ export function SprintGame({ domainSlug }: { domainSlug: string }) {
       setTimeLeftMs(remaining);
       if (remaining <= 0) {
         window.clearInterval(interval);
-        const result = scoreSprint(eventsRef.current);
+        const events = eventsRef.current;
+        const result = scoreSprint(events);
         const { isRecord, xpEarned } = completeSprint('sprint', result);
         setFinished({ result, isRecord, xpEarned });
         setPhase('finished');
+        if (signedIn && events.length > 0) {
+          void submitSprintRun({
+            domain: domainSlug,
+            durationMs: SPRINT_RULES.durationMs,
+            events,
+          });
+        }
       }
     }, 100);
     return () => window.clearInterval(interval);
-  }, [phase, completeSprint]);
+  }, [phase, completeSprint, signedIn, domainSlug]);
 
   const handleAnswer = useCallback(
     ({ correct, reactionMs }: { correct: boolean; reactionMs: number }) => {

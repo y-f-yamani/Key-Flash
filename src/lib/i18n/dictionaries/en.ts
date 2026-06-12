@@ -112,6 +112,28 @@ export const en = {
     noData: 'Complete a lesson to see your statistics.',
   },
 
+  auth: {
+    signIn: 'Sign in',
+    signOut: 'Sign out',
+    signInTitle: 'Sign in to KeyMaster',
+    signInSubtitle: 'Sync progress across devices and compete on global leaderboards.',
+    emailLabel: 'Email',
+    emailPlaceholder: 'you@example.com',
+    sendLink: 'Send magic link',
+    linkSent: 'Check your inbox — sign-in link sent.',
+    orContinueWith: 'or continue with',
+    localNote: 'Your local progress uploads automatically after you sign in.',
+  },
+
+  leaderboard: {
+    title: 'Global leaderboard',
+    subtitle: 'Top Shortcut Sprint runs worldwide.',
+    rank: 'Rank',
+    player: 'Player',
+    empty: 'No runs yet — be the first.',
+    signInToCompete: 'Sign in to submit your runs to the leaderboard.',
+  },
+
   a11y: {
     toggleTheme: 'Toggle dark mode',
     switchLanguage: 'Switch language',

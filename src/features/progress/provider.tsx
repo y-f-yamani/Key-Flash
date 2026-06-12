@@ -13,8 +13,15 @@ import {
 import { dateKeyInTimeZone } from '@/core/gamification';
 import type { SprintResult } from '@/core/scoring';
 import type { Difficulty } from '@/core/content';
-import { LocalProgressRepository, type ProgressRepository } from './repository';
+import { useOptionalAuth } from '@/features/auth/provider';
+import { getBrowserSupabase } from '@/lib/supabase/client';
+import {
+  LocalProgressRepository,
+  MirroredProgressRepository,
+  type ProgressRepository,
+} from './repository';
 import { applyDrill, applyLessonComplete, applySprintResult } from './state';
+import { SupabaseProgressRepository } from './supabase-repository';
 import { INITIAL_PLAYER_STATE, type DrillOutcome, type PlayerState } from './types';
 
 interface ProgressContextValue {
@@ -41,23 +48,44 @@ export function ProgressProvider({
   repository?: ProgressRepository;
 }) {
   const repoRef = useRef<ProgressRepository | null>(repository ?? null);
-  const [ready, setReady] = useState(false);
   const [state, setState] = useState<PlayerState>(INITIAL_PLAYER_STATE);
 
+  // Optional so tests and storybook-style usage can run without auth.
+  const auth = useOptionalAuth();
+  const userId = auth?.session?.user.id ?? null;
+  const authReady = repository ? true : (auth?.ready ?? true);
+
+  // Which repository the current `state` was loaded from. Signing in/out
+  // changes the key, which reads as "not ready" until the new load lands —
+  // no synchronous setState needed when the repository switches.
+  const repoKey = repository ? 'injected' : (userId ?? 'local');
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
+  const ready = loadedFor === repoKey;
+
   useEffect(() => {
-    // localStorage exists only in the browser, so the default repository is
-    // created here rather than during SSR.
-    repoRef.current ??= new LocalProgressRepository();
+    if (!authReady) return;
+
+    // Repositories are created in the browser (localStorage, supabase auth
+    // cookies); an explicitly injected one (tests) is used as-is.
+    if (!repository) {
+      const local = new LocalProgressRepository();
+      const supabase = userId ? getBrowserSupabase() : null;
+      repoRef.current =
+        supabase && userId
+          ? new MirroredProgressRepository(local, new SupabaseProgressRepository(supabase, userId))
+          : local;
+    }
+
     let cancelled = false;
-    repoRef.current.load().then((loaded) => {
+    repoRef.current?.load().then((loaded) => {
       if (cancelled) return;
       setState(loaded);
-      setReady(true);
+      setLoadedFor(repoKey);
     });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [repository, userId, authReady, repoKey]);
 
   const persist = useCallback((next: PlayerState) => {
     setState(next);

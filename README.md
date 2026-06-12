@@ -48,6 +48,24 @@ in localStorage behind a repository interface; see ADR-0005).
 - **i18n + RTL** — `/en` and `/ar` routes, full right-to-left layout.
 - **Dark/light themes**, PWA manifest, desktop-first responsive UI.
 
+## Phase 2 (cloud — ships dark until Supabase env vars are set)
+
+- **Auth** — email magic link + Google/GitHub OAuth (`/sign-in`, `/auth/callback`).
+- **Cloud sync** — signed-in progress mirrors to Supabase (`card_states`,
+  `user_stats`, `daily_activity`) with diff-based upserts; local progress
+  merges into the cloud on first sign-in (never loses XP, keeps stronger
+  cards/streaks/records).
+- **Run submission API** — `POST /api/v1/runs`: Zod-validated, server
+  re-scores the timeline, quarantines implausible runs (reaction floor,
+  overlapping events, tampered duration), awards XP via `award_xp()`.
+- **Global leaderboard** — `/arena/leaderboard` via the security-definer
+  `leaderboard()` function.
+
+Without `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY` every cloud
+surface hides itself and the app stays fully local-first. To go live: create a
+Supabase project, run `supabase db push`, set the env vars (see
+`.env.example`), enable the OAuth providers in the Supabase dashboard.
+
 ## Architecture in one paragraph
 
 A modular monolith: Next.js App Router routes are thin shells over
