@@ -18,6 +18,7 @@ export function SiteHeader() {
     { href: `/${locale}/learn`, label: dict.nav.learn },
     { href: `/${locale}/practice`, label: dict.nav.practice },
     { href: `/${locale}/typing`, label: dict.nav.typing },
+    { href: `/${locale}/simulator`, label: dict.nav.simulator },
     { href: `/${locale}/arena`, label: dict.nav.arena },
     { href: `/${locale}/stats`, label: dict.nav.stats },
   ];

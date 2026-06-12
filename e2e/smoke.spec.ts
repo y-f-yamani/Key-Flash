@@ -59,6 +59,22 @@ test.describe('smoke', () => {
     await expect(page.getByText(/%/)).toBeVisible();
   });
 
+  test('simulator: Win+E mission opens the simulated File Explorer', async ({ page }) => {
+    await page.goto('/en/simulator');
+    await removeDevOverlay(page);
+    await expect(page.getByTestId('sim-desktop')).toBeVisible();
+
+    // Mission 1 is Win+E; the browser-safe practice remap is Ctrl+Alt+E.
+    await page.keyboard.press('Control+Alt+e');
+    await expect(page.getByTestId('sim-window-explorer')).toBeVisible();
+    await expect(page.getByTestId('mission-done')).toBeVisible();
+
+    // Mission 2 (Win+I) opens Settings after the success pause.
+    await expect(page.getByText('Settings', { exact: true })).toBeVisible({ timeout: 5_000 });
+    await page.keyboard.press('Control+Alt+i');
+    await expect(page.getByTestId('sim-window-settings')).toBeVisible();
+  });
+
   test('survival mode shows lives and ends after three misses', async ({ page }) => {
     await page.goto('/en/arena/survival');
     await removeDevOverlay(page);

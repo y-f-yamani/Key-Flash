@@ -8,6 +8,7 @@ export const ar: Dictionary = {
     learn: 'تعلّم',
     practice: 'تدرّب',
     typing: 'الطباعة',
+    simulator: 'المحاكي',
     arena: 'الساحة',
     stats: 'الإحصاءات',
   },
@@ -117,6 +118,16 @@ export const ar: Dictionary = {
     avgAccuracy: 'متوسط الدقة',
     byCategory: 'الإتقان حسب الفئة',
     noData: 'أكمل درسًا لترى إحصاءاتك.',
+  },
+
+  simulator: {
+    title: 'محاكي ويندوز 11',
+    subtitle: 'سطح مكتب حي في متصفحك — أكمل المهمات باختصارات حقيقية.',
+    mission: 'المهمة',
+    missionDone: 'أحسنت!',
+    allDoneTitle: 'اكتملت كل المهمات!',
+    allDoneBody: 'قُدت سطح مكتب ويندوز كاملًا دون لمس الفأرة.',
+    restart: 'أعد المهمات',
   },
 
   typing: {

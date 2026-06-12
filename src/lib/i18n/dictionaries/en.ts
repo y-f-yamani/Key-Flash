@@ -10,6 +10,7 @@ export const en = {
     learn: 'Learn',
     practice: 'Practice',
     typing: 'Typing',
+    simulator: 'Simulator',
     arena: 'Arena',
     stats: 'Stats',
   },
@@ -122,6 +123,16 @@ export const en = {
     avgAccuracy: 'Average accuracy',
     byCategory: 'Mastery by category',
     noData: 'Complete a lesson to see your statistics.',
+  },
+
+  simulator: {
+    title: 'Windows 11 Simulator',
+    subtitle: 'A living desktop in your browser — complete missions with real shortcuts.',
+    mission: 'Mission',
+    missionDone: 'Done!',
+    allDoneTitle: 'All missions complete!',
+    allDoneBody: 'You drove a whole Windows desktop without touching the mouse.',
+    restart: 'Restart missions',
   },
 
   typing: {
