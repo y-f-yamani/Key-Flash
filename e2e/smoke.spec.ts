@@ -1,0 +1,35 @@
+import { expect, test } from '@playwright/test';
+
+test.describe('smoke', () => {
+  test('root redirects to the default locale and shows the landing page', async ({ page }) => {
+    await page.goto('/');
+    await expect(page).toHaveURL(/\/en$/);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(
+      'Master every Windows 11 shortcut',
+    );
+  });
+
+  test('arabic locale renders RTL', async ({ page }) => {
+    await page.goto('/ar');
+    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
+  });
+
+  test('learning path lists categories with lessons', async ({ page }) => {
+    await page.goto('/en/learn');
+    await page.getByText('Essentials').click();
+    await expect(page).toHaveURL(/\/en\/learn\/essentials$/);
+    await page.getByRole('button', { name: 'Start lesson' }).first().click();
+
+    // First drill of Essentials lesson 1 is Copy (Ctrl+C) — press the real keys.
+    await expect(page.getByText('Copy', { exact: true })).toBeVisible();
+    await page.keyboard.press('Control+c');
+    await expect(page.getByText('Correct!')).toBeVisible();
+  });
+
+  test('sprint run starts and shows a live timer', async ({ page }) => {
+    await page.goto('/en/arena/sprint');
+    await page.getByTestId('start-sprint').click();
+    await expect(page.getByTestId('sprint-running')).toBeVisible();
+  });
+});

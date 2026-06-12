@@ -1,0 +1,17 @@
+{
+  "name": "KeyMaster — Windows 11 Shortcuts",
+  "short_name": "KeyMaster",
+  "description": "Master Windows 11 keyboard shortcuts with interactive training and a competitive speed arena.",
+  "start_url": "/en",
+  "display": "standalone",
+  "background_color": "#0b0d12",
+  "theme_color": "#6d28d9",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

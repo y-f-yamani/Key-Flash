@@ -1,0 +1,126 @@
+/**
+ * English dictionary — the canonical shape. `ar.ts` must satisfy `Dictionary`,
+ * so a missing translation is a compile error, not a runtime surprise.
+ */
+export const en = {
+  appName: 'KeyMaster',
+  tagline: 'Become a Windows 11 power user',
+
+  nav: {
+    learn: 'Learn',
+    practice: 'Practice',
+    arena: 'Arena',
+    stats: 'Stats',
+  },
+
+  landing: {
+    heroTitle: 'Master every Windows 11 shortcut',
+    heroSubtitle:
+      'Interactive lessons, spaced repetition and a competitive speed arena — with real keyboard detection that measures your actual reflexes.',
+    ctaStart: 'Start learning',
+    ctaArena: 'Enter the Arena',
+    featureLearnTitle: 'Learn by doing',
+    featureLearnBody:
+      'No multiple choice where it matters: press the real keys and feel the muscle memory build.',
+    featureSrsTitle: 'Never forget',
+    featureSrsBody:
+      'Spaced repetition schedules every shortcut exactly when you are about to forget it.',
+    featureArenaTitle: 'Compete on speed',
+    featureArenaBody:
+      'Sprint against the clock, build combos, and chase personal records measured to the millisecond.',
+    statShortcuts: 'shortcuts',
+    statCategories: 'categories',
+    statLanguages: 'languages',
+  },
+
+  common: {
+    level: 'Level',
+    xp: 'XP',
+    streak: 'Streak',
+    day: 'day',
+    days: 'days',
+    accuracy: 'Accuracy',
+    avgReaction: 'Avg reaction',
+    consistency: 'Consistency',
+    bestScore: 'Best score',
+    score: 'Score',
+    combo: 'Combo',
+    maxCombo: 'Max combo',
+    correct: 'Correct',
+    start: 'Start',
+    continue: 'Continue',
+    back: 'Back',
+    done: 'Done',
+    cancel: 'Cancel',
+    dailyGoal: 'Daily goal',
+  },
+
+  learn: {
+    title: 'Learning path',
+    subtitle: 'Work through each category to build complete keyboard mastery.',
+    lesson: 'Lesson',
+    shortcutsLabel: 'shortcuts',
+    masteredLabel: 'mastered',
+    startLesson: 'Start lesson',
+    lessonComplete: 'Lesson complete!',
+    xpEarned: 'XP earned',
+    backToPath: 'Back to learning path',
+  },
+
+  practice: {
+    title: 'Practice',
+    subtitle: 'Review due shortcuts before they fade.',
+    dueNow: 'due now',
+    reviewNow: 'Review now',
+    allDoneTitle: 'All caught up!',
+    allDoneBody: 'No reviews due. Learn new shortcuts or hit the Arena.',
+    pressKeys: 'Press the shortcut',
+    youPressed: 'You pressed',
+    expected: 'Expected',
+    tryAgain: 'Try again',
+    reveal: 'Reveal',
+    next: 'Next',
+    correctLabel: 'Correct!',
+    wrongLabel: 'Not quite',
+    metaRemapNote: 'Browsers reserve the ⊞ Win key — hold Ctrl + Alt instead during practice.',
+    quizPrompt: 'Which keys perform this action?',
+    sessionComplete: 'Session complete',
+  },
+
+  arena: {
+    title: 'Speed Arena',
+    subtitle: 'Raw speed, measured honestly. No mercy.',
+    sprintTitle: 'Shortcut Sprint',
+    sprintDesc: '60 seconds. As many shortcuts as you can. Combos multiply your score.',
+    startRun: 'Start run',
+    getReady: 'Get ready…',
+    timeLeft: 'Time left',
+    finalScore: 'Final score',
+    newRecord: 'New personal record!',
+    runAgain: 'Run again',
+    comingSoon: 'Coming soon',
+    modesLockedNote: 'More modes unlock as the platform grows.',
+  },
+
+  stats: {
+    title: 'Your statistics',
+    subtitle: 'Progress across every shortcut you have trained.',
+    totalXp: 'Total XP',
+    shortcutsSeen: 'Shortcuts trained',
+    avgAccuracy: 'Average accuracy',
+    byCategory: 'Mastery by category',
+    noData: 'Complete a lesson to see your statistics.',
+  },
+
+  a11y: {
+    toggleTheme: 'Toggle dark mode',
+    switchLanguage: 'Switch language',
+  },
+} as const;
+
+/** Structural type all locales must satisfy. */
+export type Dictionary = {
+  [K in keyof typeof en]: (typeof en)[K] extends string
+    ? string
+    : { [P in keyof (typeof en)[K]]: string };
+};

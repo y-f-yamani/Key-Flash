@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Design tokens. Components reference semantic names only (bg-background,
+   text-foreground, ...) so themes and future branding changes stay one-file. */
+:root {
+  --background: #f8f8fb;
+  --foreground: #17181d;
+  --card: #ffffff;
+  --card-foreground: #17181d;
+  --muted: #eceef3;
+  --muted-foreground: #5d616e;
+  --border: #dfe2ea;
+  --primary: #6d28d9;
+  --primary-foreground: #ffffff;
+  --accent: #0891b2;
+  --accent-foreground: #ffffff;
+  --success: #15803d;
+  --danger: #dc2626;
+  --warning: #d97706;
+  --keycap-top: #ffffff;
+  --keycap-shadow: #c9ccd6;
+}
+
+.dark {
+  --background: #0b0d12;
+  --foreground: #e6e7eb;
+  --card: #14161d;
+  --card-foreground: #e6e7eb;
+  --muted: #1d202a;
+  --muted-foreground: #9b9fad;
+  --border: #272b37;
+  --primary: #8b5cf6;
+  --primary-foreground: #ffffff;
+  --accent: #22d3ee;
+  --accent-foreground: #06363f;
+  --success: #4ade80;
+  --danger: #f87171;
+  --warning: #fbbf24;
+  --keycap-top: #1f232e;
+  --keycap-shadow: #05060a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, "Segoe UI",
+    "Noto Sans Arabic", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Physical-looking keycap used across trainer, arena and landing. */
+.keycap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 0.45rem;
+  border: 1px solid var(--border);
+  background: var(--keycap-top);
+  box-shadow: 0 3px 0 var(--keycap-shadow);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1;
+  user-select: none;
+}
+
+.keycap-pressed {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--keycap-shadow);
+}
