@@ -3,6 +3,15 @@ import { lessonsFor } from '@/content';
 import { LessonRunner } from '@/features/learn/lesson-runner';
 import { isLocale } from '@/lib/i18n';
 
+// Lessons derive deterministically from the catalog — prerender all of them.
+export const dynamicParams = false;
+
+export function generateStaticParams({ params }: { params: { categoryId: string } }) {
+  return lessonsFor('win11')
+    .filter((lesson) => lesson.categoryId === params.categoryId)
+    .map((lesson) => ({ lessonIndex: String(lesson.index) }));
+}
+
 export default async function LessonPage({
   params,
 }: {

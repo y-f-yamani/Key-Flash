@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Gauge, Heart, Skull, Swords, Target, Timer, Trophy } from 'lucide-react';
+import { Gauge, Heart, Link2, Skull, Target, Timer, Trophy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getDictionary, isLocale } from '@/lib/i18n';
@@ -14,13 +14,33 @@ export default async function ArenaPage({
   if (!isLocale(locale)) notFound();
   const dict = getDictionary(locale);
 
-  // Mode metadata only — each mode's rules live in core when implemented.
-  const upcoming = [
-    { icon: Timer, name: 'Time Attack' },
-    { icon: Heart, name: 'Survival' },
-    { icon: Skull, name: 'Boss Rush' },
-    { icon: Swords, name: 'Combo Rush' },
-    { icon: Target, name: 'Reaction Test' },
+  // Live modes link to /arena/[mode]; rules live in core/arena/modes.ts.
+  const modes = [
+    { slug: 'sprint', icon: Gauge, title: dict.arena.sprintTitle, desc: dict.arena.sprintDesc },
+    {
+      slug: 'time-attack',
+      icon: Timer,
+      title: dict.arena.timeAttackTitle,
+      desc: dict.arena.timeAttackDesc,
+    },
+    {
+      slug: 'survival',
+      icon: Heart,
+      title: dict.arena.survivalTitle,
+      desc: dict.arena.survivalDesc,
+    },
+    {
+      slug: 'boss-rush',
+      icon: Skull,
+      title: dict.arena.bossRushTitle,
+      desc: dict.arena.bossRushDesc,
+    },
+    {
+      slug: 'combo-rush',
+      icon: Link2,
+      title: dict.arena.comboRushTitle,
+      desc: dict.arena.comboRushDesc,
+    },
   ];
 
   return (
@@ -31,15 +51,17 @@ export default async function ArenaPage({
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Link href={`/${locale}/arena/sprint`}>
-          <Card className="h-full border-primary/50 transition-colors hover:border-primary">
-            <CardHeader>
-              <Gauge className="size-7 text-primary" aria-hidden />
-              <CardTitle>{dict.arena.sprintTitle}</CardTitle>
-              <CardDescription>{dict.arena.sprintDesc}</CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
+        {modes.map((mode) => (
+          <Link key={mode.slug} href={`/${locale}/arena/${mode.slug}`}>
+            <Card className="h-full border-primary/50 transition-colors hover:border-primary">
+              <CardHeader>
+                <mode.icon className="size-7 text-primary" aria-hidden />
+                <CardTitle>{mode.title}</CardTitle>
+                <CardDescription>{mode.desc}</CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+        ))}
 
         <Link href={`/${locale}/arena/leaderboard`}>
           <Card className="h-full transition-colors hover:border-primary">
@@ -51,17 +73,15 @@ export default async function ArenaPage({
           </Card>
         </Link>
 
-        {upcoming.map((mode) => (
-          <Card key={mode.name} className="h-full opacity-60">
-            <CardHeader>
-              <mode.icon className="size-7 text-muted-foreground" aria-hidden />
-              <CardTitle>{mode.name}</CardTitle>
-              <Badge variant="muted" className="w-fit">
-                {dict.arena.comingSoon}
-              </Badge>
-            </CardHeader>
-          </Card>
-        ))}
+        <Card className="h-full opacity-60">
+          <CardHeader>
+            <Target className="size-7 text-muted-foreground" aria-hidden />
+            <CardTitle>{dict.arena.reactionTitle}</CardTitle>
+            <Badge variant="muted" className="w-fit">
+              {dict.arena.comingSoon}
+            </Badge>
+          </CardHeader>
+        </Card>
       </div>
       <p className="text-sm text-muted-foreground">{dict.arena.modesLockedNote}</p>
     </div>

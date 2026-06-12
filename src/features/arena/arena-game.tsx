@@ -1,25 +1,20 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Timer, Trophy, Zap } from 'lucide-react';
+import { Heart, Timer, Trophy, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { StatTile } from '@/components/shared/stat-tile';
 import { registry } from '@/content';
-import { createRng, pickPrompt, type Rng } from '@/core/arena';
+import { createRng, getMode, isRunOver, livesLeft, pickPrompt } from '@/core/arena';
 import type { ShortcutDefinition } from '@/core/content';
-import {
-  SPRINT_RULES,
-  pointsForAnswer,
-  scoreSprint,
-  type DrillEvent,
-  type SprintResult,
-} from '@/core/scoring';
+import { pointsForAnswer, type DrillEvent, type SprintResult } from '@/core/scoring';
 import { useOptionalAuth } from '@/features/auth/provider';
 import { useProgress } from '@/features/progress';
 import { useKeyCapture } from '@/features/practice/use-key-capture';
 import { useI18n } from '@/lib/i18n/provider';
+import type { Dictionary } from '@/lib/i18n';
 import { submitSprintRun } from './submit-run';
 
 type Phase = 'idle' | 'running' | 'finished';
@@ -30,100 +25,131 @@ interface FinishedRun {
   xpEarned: number;
 }
 
+/** Dictionary keys per mode — content stays in the i18n layer. */
+export function modeCopy(dict: Dictionary, slug: string): { title: string; desc: string } {
+  const arena = dict.arena;
+  switch (slug) {
+    case 'time-attack':
+      return { title: arena.timeAttackTitle, desc: arena.timeAttackDesc };
+    case 'survival':
+      return { title: arena.survivalTitle, desc: arena.survivalDesc };
+    case 'boss-rush':
+      return { title: arena.bossRushTitle, desc: arena.bossRushDesc };
+    case 'combo-rush':
+      return { title: arena.comboRushTitle, desc: arena.comboRushDesc };
+    default:
+      return { title: arena.sprintTitle, desc: arena.sprintDesc };
+  }
+}
+
 /**
- * Shortcut Sprint: 60 seconds, as many shortcuts as possible, combo-multiplied
- * scoring (core/scoring/sprint.ts). Only capturable shortcuts appear — recall
- * quizzes have no place in a speed mode.
+ * Mode-agnostic arena game. All mode behavior (clock, lives, target count,
+ * prompt pool, scoring) comes from `rules` (core/arena/modes.ts) — adding a
+ * mode is a rules entry plus dictionary copy, not a new game component.
  */
-export function SprintGame({ domainSlug }: { domainSlug: string }) {
+export function ArenaGame({ mode, domainSlug }: { mode: string; domainSlug: string }) {
   const { dict, locale } = useI18n();
   const { ready, state, completeSprint } = useProgress();
   const auth = useOptionalAuth();
   const signedIn = Boolean(auth?.session);
+  // The route validated the slug; rules resolve client-side because they
+  // contain functions and cannot cross the RSC boundary.
+  const rules = getMode(mode) ?? getMode('sprint')!;
+  const copy = modeCopy(dict, rules.slug);
 
   const pool = useMemo(
     () =>
       (registry.getDomain(domainSlug)?.shortcuts ?? []).filter(
-        (s) => s.capturable !== 'none',
+        (s) => s.capturable !== 'none' && s.difficulty >= rules.minDifficulty,
       ),
-    [domainSlug],
+    [domainSlug, rules.minDifficulty],
   );
 
   const [phase, setPhase] = useState<Phase>('idle');
   const [prompt, setPrompt] = useState<ShortcutDefinition | null>(null);
-  const [timeLeftMs, setTimeLeftMs] = useState<number>(SPRINT_RULES.durationMs);
+  const [clockMs, setClockMs] = useState<number>(rules.timeLimitMs ?? 0);
   const [liveScore, setLiveScore] = useState(0);
   const [combo, setCombo] = useState(0);
+  const [events, setEvents] = useState<readonly DrillEvent[]>([]);
   const [finished, setFinished] = useState<FinishedRun | null>(null);
 
-  // Created lazily in start() — render stays pure (no Date.now() during render).
-  const rngRef = useRef<Rng | null>(null);
+  const rngRef = useRef(createRng(0));
   const eventsRef = useRef<DrillEvent[]>([]);
   const startAtRef = useRef(0);
   const comboRef = useRef(0);
+  const finishedRef = useRef(false);
+
+  const finishRun = useCallback(() => {
+    if (finishedRef.current) return;
+    finishedRef.current = true;
+    const timeline = eventsRef.current;
+    const result = rules.score(timeline);
+    const { isRecord, xpEarned } = completeSprint(rules.slug, result);
+    setFinished({ result, isRecord, xpEarned });
+    setPhase('finished');
+    if (signedIn && timeline.length > 0) {
+      const durationMs =
+        rules.timeLimitMs ?? Math.max(1, Math.round(performance.now() - startAtRef.current));
+      void submitSprintRun({ domain: domainSlug, mode: rules.slug, durationMs, events: timeline });
+    }
+  }, [rules, completeSprint, signedIn, domainSlug]);
 
   const start = useCallback(() => {
-    const rng = createRng(Date.now());
-    rngRef.current = rng;
+    rngRef.current = createRng(Date.now());
     eventsRef.current = [];
     comboRef.current = 0;
+    finishedRef.current = false;
     startAtRef.current = performance.now();
     setLiveScore(0);
     setCombo(0);
-    setTimeLeftMs(SPRINT_RULES.durationMs);
+    setEvents([]);
+    setClockMs(rules.timeLimitMs ?? 0);
     setFinished(null);
-    setPrompt(pickPrompt(pool, rng, null));
+    setPrompt(pickPrompt(pool, rngRef.current, null));
     setPhase('running');
-  }, [pool]);
+  }, [pool, rules.timeLimitMs]);
 
-  // Countdown clock; ends the run when time is up.
+  // Clock: counts down for timed modes, up for untimed ones.
   useEffect(() => {
     if (phase !== 'running') return;
     const interval = window.setInterval(() => {
       const elapsed = performance.now() - startAtRef.current;
-      const remaining = Math.max(0, SPRINT_RULES.durationMs - elapsed);
-      setTimeLeftMs(remaining);
-      if (remaining <= 0) {
+      setClockMs(rules.timeLimitMs !== null ? Math.max(0, rules.timeLimitMs - elapsed) : elapsed);
+      if (isRunOver(rules, eventsRef.current, elapsed)) {
         window.clearInterval(interval);
-        const events = eventsRef.current;
-        const result = scoreSprint(events);
-        const { isRecord, xpEarned } = completeSprint('sprint', result);
-        setFinished({ result, isRecord, xpEarned });
-        setPhase('finished');
-        if (signedIn && events.length > 0) {
-          void submitSprintRun({
-            domain: domainSlug,
-            durationMs: SPRINT_RULES.durationMs,
-            events,
-          });
-        }
+        finishRun();
       }
     }, 100);
     return () => window.clearInterval(interval);
-  }, [phase, completeSprint, signedIn, domainSlug]);
+  }, [phase, rules, finishRun]);
 
   const handleAnswer = useCallback(
-    ({ correct, reactionMs }: { correct: boolean; reactionMs: number }) => {
-      const rng = rngRef.current;
-      if (phase !== 'running' || !prompt || !rng) return;
+    ({ correct, reactionMs: reaction }: { correct: boolean; reactionMs: number }) => {
+      if (phase !== 'running' || !prompt || finishedRef.current) return;
       const answeredAt = performance.now() - startAtRef.current;
       eventsRef.current.push({
         shortcutId: prompt.id,
-        promptAt: answeredAt - reactionMs,
+        promptAt: answeredAt - reaction,
         answeredAt,
         correct,
       });
+      setEvents([...eventsRef.current]);
 
       if (correct) {
         comboRef.current += 1;
-        setLiveScore((score) => score + pointsForAnswer(reactionMs, comboRef.current));
+        setLiveScore((score) => score + pointsForAnswer(reaction, comboRef.current));
       } else {
         comboRef.current = 0;
       }
       setCombo(comboRef.current);
-      setPrompt(pickPrompt(pool, rng, prompt.id));
+
+      if (isRunOver(rules, eventsRef.current, answeredAt)) {
+        finishRun();
+        return;
+      }
+      setPrompt(pickPrompt(pool, rngRef.current, prompt.id));
     },
-    [phase, prompt, pool],
+    [phase, prompt, pool, rules, finishRun],
   );
 
   useKeyCapture({
@@ -135,12 +161,12 @@ export function SprintGame({ domainSlug }: { domainSlug: string }) {
   if (!ready) return <div className="h-40 animate-pulse rounded-xl bg-muted" />;
 
   if (phase === 'idle') {
-    const best = state.bests['sprint'];
+    const best = state.bests[rules.slug];
     return (
       <Card>
         <CardContent className="flex flex-col items-center gap-5 p-10 text-center">
-          <h1 className="text-3xl font-extrabold">{dict.arena.sprintTitle}</h1>
-          <p className="max-w-md text-muted-foreground">{dict.arena.sprintDesc}</p>
+          <h1 className="text-3xl font-extrabold">{copy.title}</h1>
+          <p className="max-w-md text-muted-foreground">{copy.desc}</p>
           {best && (
             <Badge variant="accent">
               <Trophy className="size-3.5" /> {dict.common.bestScore}:{' '}
@@ -171,7 +197,9 @@ export function SprintGame({ domainSlug }: { domainSlug: string }) {
           <p className="text-6xl font-extrabold tabular-nums text-primary">
             {result.score.toLocaleString(locale)}
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">+{xpEarned} {dict.common.xp}</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            +{xpEarned} {dict.common.xp}
+          </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatTile
@@ -193,15 +221,27 @@ export function SprintGame({ domainSlug }: { domainSlug: string }) {
     );
   }
 
+  const lives = livesLeft(rules, events);
   return (
     <div className="flex flex-col gap-6" data-testid="sprint-running">
       <div className="flex items-center justify-between text-lg font-bold tabular-nums">
-        <span className="inline-flex items-center gap-2">
+        <span className="inline-flex items-center gap-2" title={rules.timeLimitMs !== null ? dict.arena.timeLeft : dict.arena.elapsed}>
           <Timer className="size-5 text-accent" aria-hidden />
-          {(timeLeftMs / 1000).toFixed(1)}s
+          {(clockMs / 1000).toFixed(1)}s
         </span>
-        <span className="text-primary">{liveScore.toLocaleString(locale)}</span>
-        <span className="inline-flex items-center gap-1">
+        <span className="text-primary">
+          {rules.targetCount !== null
+            ? `${events.length} / ${rules.targetCount}`
+            : liveScore.toLocaleString(locale)}
+        </span>
+        <span className="inline-flex items-center gap-2">
+          {lives !== null && (
+            <span className="inline-flex items-center gap-0.5" title={dict.arena.lives}>
+              {Array.from({ length: lives }).map((_, i) => (
+                <Heart key={i} className="size-4 fill-danger text-danger" aria-hidden />
+              ))}
+            </span>
+          )}
           <Zap
             className={`size-5 ${combo >= 3 ? 'text-warning' : 'text-muted-foreground'}`}
             aria-hidden

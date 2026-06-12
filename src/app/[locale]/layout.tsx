@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { notFound } from 'next/navigation';
+import Script from 'next/script';
 import { AuthProvider } from '@/features/auth/provider';
 import { ProgressProvider } from '@/features/progress';
 import { SiteHeader } from '@/features/shell/site-header';
@@ -37,7 +38,12 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} dir={dirFor(locale)} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        {/* Applies the stored theme before first paint (no dark-mode flash). */}
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
+        />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <I18nProvider locale={locale} dict={dict}>

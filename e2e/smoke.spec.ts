@@ -1,4 +1,15 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+/**
+ * Next's DEV error overlay surfaces console warnings as a click-blocking
+ * dialog (production builds have no overlay). Strip it so clicks reach the
+ * app — the warning itself (inline theme script on on-demand-rendered pages)
+ * is dev-only noise from next/script beforeInteractive.
+ */
+async function removeDevOverlay(page: Page) {
+  await page.waitForTimeout(300);
+  await page.evaluate(() => document.querySelector('nextjs-portal')?.remove());
+}
 
 test.describe('smoke', () => {
   test('root redirects to the default locale and shows the landing page', async ({ page }) => {
@@ -31,7 +42,21 @@ test.describe('smoke', () => {
 
   test('sprint run starts and shows a live timer', async ({ page }) => {
     await page.goto('/en/arena/sprint');
+    await removeDevOverlay(page);
     await page.getByTestId('start-sprint').click();
     await expect(page.getByTestId('sprint-running')).toBeVisible();
+  });
+
+  test('survival mode shows lives and ends after three misses', async ({ page }) => {
+    await page.goto('/en/arena/survival');
+    await removeDevOverlay(page);
+    await page.getByTestId('start-sprint').click();
+    await expect(page.getByTestId('sprint-running')).toBeVisible();
+
+    // Three wrong chords burn all lives and finish the run.
+    for (let i = 0; i < 3; i++) {
+      await page.keyboard.press('Control+Shift+F9');
+    }
+    await expect(page.getByTestId('sprint-results')).toBeVisible();
   });
 });

@@ -3,6 +3,13 @@ import { registry } from '@/content';
 import { LessonList } from '@/features/learn/lesson-list';
 import { getDictionary, isLocale } from '@/lib/i18n';
 
+// Catalog is code (ADR-0002) — every category is known at build time.
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  return (registry.getDomain('win11')?.categories ?? []).map((c) => ({ categoryId: c.id }));
+}
+
 export default async function CategoryPage({
   params,
 }: {

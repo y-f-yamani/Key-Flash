@@ -8,16 +8,17 @@ import type { RunSubmission } from './run-validation';
  */
 export async function submitSprintRun(args: {
   domain: string;
+  mode: RunSubmission['mode'];
   durationMs: number;
   events: readonly DrillEvent[];
 }): Promise<void> {
   const submission: RunSubmission = {
     id: crypto.randomUUID(),
     domain: args.domain,
-    mode: 'sprint',
+    mode: args.mode,
     startedAt: Date.now() - args.durationMs,
     durationMs: args.durationMs,
-    clientVersion: 'web-0.2',
+    clientVersion: 'web-0.3',
     events: [...args.events],
   };
   try {

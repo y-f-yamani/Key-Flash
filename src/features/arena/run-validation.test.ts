@@ -84,4 +84,43 @@ describe('validateRun', () => {
       'duration-mismatch',
     );
   });
+
+  it('untimed modes accept any sane duration but enforce lives', () => {
+    const survival = submission({
+      mode: 'survival',
+      durationMs: 95_000,
+      events: [
+        { shortcutId: 'a', promptAt: 0, answeredAt: 500, correct: false },
+        { shortcutId: 'b', promptAt: 600, answeredAt: 1_100, correct: false },
+        { shortcutId: 'c', promptAt: 1_200, answeredAt: 1_700, correct: false },
+        { shortcutId: 'd', promptAt: 1_800, answeredAt: 2_300, correct: false }, // 4th miss impossible
+      ],
+    });
+    const verdict = validateRun(survival);
+    expect(verdict.reasons).toContain('too-many-misses');
+
+    const clean = validateRun(
+      submission({ mode: 'survival', durationMs: 95_000 }),
+    );
+    expect(clean.quarantined).toBe(false);
+  });
+
+  it('time-attack rejects more events than the target and scores by speed', () => {
+    const tooMany = Array.from({ length: 21 }, (_, i) => ({
+      shortcutId: 'x',
+      promptAt: i * 1_000,
+      answeredAt: i * 1_000 + 500,
+      correct: true,
+    }));
+    expect(
+      validateRun(submission({ mode: 'time-attack', durationMs: 25_000, events: tooMany })).reasons,
+    ).toContain('too-many-events');
+
+    const twenty = tooMany.slice(0, 20);
+    const verdict = validateRun(
+      submission({ mode: 'time-attack', durationMs: 25_000, events: twenty }),
+    );
+    expect(verdict.quarantined).toBe(false);
+    expect(verdict.result.score).toBeGreaterThan(0); // time-attack scoring applied
+  });
 });

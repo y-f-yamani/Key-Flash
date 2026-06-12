@@ -36,11 +36,11 @@ export function SignInCard() {
     }
   }
 
-  async function oauth(provider: 'google' | 'github') {
+  async function oauthGitHub() {
     const supabase = getBrowserSupabase();
     if (!supabase) return;
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider,
+      provider: 'github',
       options: { redirectTo: callbackUrl() },
     });
     if (oauthError) {
@@ -84,14 +84,9 @@ export function SignInCard() {
           {dict.auth.orContinueWith}
           <span className="h-px flex-1 bg-border" />
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <Button variant="outline" onClick={() => oauth('google')}>
-            Google
-          </Button>
-          <Button variant="outline" onClick={() => oauth('github')}>
-            GitHub
-          </Button>
-        </div>
+        <Button variant="outline" onClick={() => void oauthGitHub()}>
+          GitHub
+        </Button>
         <p className="text-xs text-muted-foreground">{dict.auth.localNote}</p>
       </CardContent>
     </Card>

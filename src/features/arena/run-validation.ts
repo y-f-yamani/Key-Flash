@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { SPRINT_RULES, scoreSprint, type SprintResult } from '@/core/scoring';
+import { getMode } from '@/core/arena';
+import type { SprintResult } from '@/core/scoring';
 
 /**
  * Run submission contract + server-side validation. Shared by the client
@@ -14,7 +15,7 @@ import { SPRINT_RULES, scoreSprint, type SprintResult } from '@/core/scoring';
 export const runSubmissionSchema = z.object({
   id: z.uuid(),
   domain: z.string().min(1).max(32),
-  mode: z.literal('sprint'),
+  mode: z.enum(['sprint', 'time-attack', 'survival', 'boss-rush', 'combo-rush']),
   startedAt: z.number().int().nonnegative(),
   durationMs: z.number().int().positive().max(10 * 60_000),
   clientVersion: z.string().max(32).default(''),
@@ -45,9 +46,22 @@ export interface ValidatedRun {
 export function validateRun(submission: RunSubmission): ValidatedRun {
   const reasons: string[] = [];
   const { events, durationMs } = submission;
+  const rules = getMode(submission.mode);
+  if (!rules) {
+    // Schema already guards this; belt-and-braces for direct callers.
+    return { result: emptyResult(), quarantined: true, reasons: ['unknown-mode'] };
+  }
 
-  if (submission.mode === 'sprint' && durationMs !== SPRINT_RULES.durationMs) {
+  // Timed modes have a fixed wall clock; untimed ones report elapsed time.
+  if (rules.timeLimitMs !== null && durationMs !== rules.timeLimitMs) {
     reasons.push('duration-mismatch');
+  }
+  if (rules.maxMisses !== null) {
+    const misses = events.filter((e) => !e.correct).length;
+    if (misses > rules.maxMisses) reasons.push('too-many-misses');
+  }
+  if (rules.targetCount !== null && events.length > rules.targetCount) {
+    reasons.push('too-many-events');
   }
 
   let previousAnsweredAt = -1;
@@ -72,8 +86,13 @@ export function validateRun(submission: RunSubmission): ValidatedRun {
   }
 
   return {
-    result: scoreSprint(events),
+    // The server's recomputed score is the one that counts (mode-specific).
+    result: rules.score(events),
     quarantined: reasons.length > 0,
     reasons,
   };
+}
+
+function emptyResult(): SprintResult {
+  return { score: 0, accuracy: 0, avgReactionMs: 0, consistency: 0, maxCombo: 0, correct: 0, total: 0 };
 }
