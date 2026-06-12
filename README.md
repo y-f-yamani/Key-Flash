@@ -1,3 +1,8 @@
+# Project Descriptoin
+Gamified SaaS Platform for Keyboard Productivity & Skill Mastery
+SaaS لتعليم احتراف اختصارات الكيبورد بطريقة ألعاب تنافسية
+
+
 # KeyMaster — Master Windows 11 Keyboard Shortcuts
 
 The definitive platform for keyboard-shortcut mastery: interactive lessons,
