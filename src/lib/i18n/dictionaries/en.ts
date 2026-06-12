@@ -9,6 +9,7 @@ export const en = {
   nav: {
     learn: 'Learn',
     practice: 'Practice',
+    typing: 'Typing',
     arena: 'Arena',
     stats: 'Stats',
   },
@@ -121,6 +122,20 @@ export const en = {
     avgAccuracy: 'Average accuracy',
     byCategory: 'Mastery by category',
     noData: 'Complete a lesson to see your statistics.',
+  },
+
+  typing: {
+    title: 'Touch Typing',
+    subtitle: 'Train raw keyboard speed — accuracy first, then velocity.',
+    start: 'Start typing test',
+    duration: 'Duration',
+    wpm: 'WPM',
+    rawWpm: 'Raw WPM',
+    bestWpm: 'Best WPM',
+    bestStreak: 'Best streak',
+    keystrokes: 'Keystrokes',
+    typeToBegin: 'Start typing — the clock starts on your first key.',
+    tryAgain: 'Try again',
   },
 
   auth: {

@@ -29,12 +29,20 @@ Remaining arena modes (Time Attack, Survival, Boss Rush, Combo Rush, Reaction Te
 ratings · tiers Bronze→Windows Legend · friend invites · random matchmaking ·
 weekly tournaments · seasons.
 
-## Phase 4 — Simulator
+## Phase 3.5 — Touch typing (SHIPPED ✅)
+
+Monkeytype-style typing trainer — the platform trains *keyboard mastery*, not
+only shortcuts. Pure `core/typing` engine (WPM net/raw, accuracy that survives
+corrections, rhythm consistency, streaks), seeded en/ar word corpora, 30s/60s
+timed tests, per-duration personal bests + XP through the shared progress
+pipeline. Seeded generation is the basis for future head-to-head typing races.
+
+## Phase 4 — Windows 11 Simulator (NEXT)
 
 Browser-based Windows 11 visual simulation (taskbar, windows, Explorer, Task Manager,
 clipboard history, virtual desktops as React components). Missions: "open File
 Explorer" → user presses Win+E → simulated window opens. Mission engine consumes the
-same `KeyChordMatcher`; UI reacts like real Windows. Pure front-end; no OS calls.
+same `ShortcutMatcher`; UI reacts like real Windows. Pure front-end; no OS calls.
 
 ## Phase 5 — Monetization & AI coach
 

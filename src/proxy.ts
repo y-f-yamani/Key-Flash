@@ -19,6 +19,8 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Skip static assets, API routes and files with extensions.
-  matcher: ['/((?!api|_next|.*\\..*).*)'],
+  // Skip static assets, API routes, auth callbacks (locale-agnostic route
+  // handlers — localizing /auth/callback?code=... broke OAuth with a 404),
+  // and files with extensions.
+  matcher: ['/((?!api|auth|_next|.*\\..*).*)'],
 };

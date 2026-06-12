@@ -7,6 +7,7 @@ export const ar: Dictionary = {
   nav: {
     learn: 'تعلّم',
     practice: 'تدرّب',
+    typing: 'الطباعة',
     arena: 'الساحة',
     stats: 'الإحصاءات',
   },
@@ -116,6 +117,20 @@ export const ar: Dictionary = {
     avgAccuracy: 'متوسط الدقة',
     byCategory: 'الإتقان حسب الفئة',
     noData: 'أكمل درسًا لترى إحصاءاتك.',
+  },
+
+  typing: {
+    title: 'الطباعة باللمس',
+    subtitle: 'درّب سرعتك الخام على لوحة المفاتيح — الدقة أولًا ثم السرعة.',
+    start: 'ابدأ اختبار الطباعة',
+    duration: 'المدة',
+    wpm: 'كلمة/دقيقة',
+    rawWpm: 'السرعة الخام',
+    bestWpm: 'أفضل سرعة',
+    bestStreak: 'أطول سلسلة',
+    keystrokes: 'ضغطات المفاتيح',
+    typeToBegin: 'ابدأ الكتابة — يبدأ العد مع أول ضغطة.',
+    tryAgain: 'حاول مجددًا',
   },
 
   auth: {

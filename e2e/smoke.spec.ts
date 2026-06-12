@@ -47,6 +47,18 @@ test.describe('smoke', () => {
     await expect(page.getByTestId('sprint-running')).toBeVisible();
   });
 
+  test('typing test runs and measures live WPM from real keystrokes', async ({ page }) => {
+    await page.goto('/en/typing');
+    await removeDevOverlay(page);
+    await page.getByTestId('start-typing').click();
+    await expect(page.getByTestId('typing-running')).toBeVisible();
+
+    await page.keyboard.type('the quick brown fox jumps', { delay: 25 });
+    // Live HUD switches from the "type to begin" hint to WPM + accuracy.
+    await expect(page.getByText(/WPM/)).toBeVisible();
+    await expect(page.getByText(/%/)).toBeVisible();
+  });
+
   test('survival mode shows lives and ends after three misses', async ({ page }) => {
     await page.goto('/en/arena/survival');
     await removeDevOverlay(page);
