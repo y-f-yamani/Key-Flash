@@ -9,6 +9,7 @@ import { KeyCombo } from '@/components/shared/key-combo';
 import type { ShortcutDefinition } from '@/core/content';
 import { useI18n } from '@/lib/i18n/provider';
 import { useKeyCapture, type CaptureResult } from './use-key-capture';
+import { WinKeyHint } from './win-key-mode';
 
 interface CaptureDrillProps {
   shortcut: ShortcutDefinition;
@@ -55,11 +56,7 @@ export function CaptureDrill({ shortcut, onResult }: CaptureDrillProps) {
               {dict.practice.pressKeys}
               {shortcut.keys.length > 1 && ` (${stepIndex + 1}/${shortcut.keys.length})`}
             </Badge>
-            {needsMetaRemap && (
-              <p className="max-w-sm text-xs text-muted-foreground">
-                {dict.practice.metaRemapNote}
-              </p>
-            )}
+            <WinKeyHint show={needsMetaRemap} />
           </>
         ) : (
           <div className="flex flex-col items-center gap-4">

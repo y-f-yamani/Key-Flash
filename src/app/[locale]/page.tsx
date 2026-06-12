@@ -4,6 +4,7 @@ import { Swords, Brain, Keyboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { KeyCombo } from '@/components/shared/key-combo';
+import { KeycapBuddy } from '@/components/shared/keycap-buddy';
 import { registry } from '@/content';
 import { parseChord } from '@/core/keyboard';
 import { LOCALES, getDictionary, isLocale } from '@/lib/i18n';
@@ -35,7 +36,10 @@ export default async function LandingPage({
   return (
     <div className="flex flex-col gap-16 py-8">
       <section className="flex flex-col items-center gap-6 text-center">
-        <KeyCombo keys={HERO_COMBO} size="lg" />
+        <div className="flex items-end gap-4">
+          <KeycapBuddy mood="cheer" size={120} className="animate-bob" />
+          <KeyCombo keys={HERO_COMBO} size="lg" />
+        </div>
         <h1 className="max-w-3xl text-balance text-4xl font-extrabold leading-tight md:text-6xl">
           {dict.landing.heroTitle}
         </h1>

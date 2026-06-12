@@ -113,6 +113,15 @@ describe('ShortcutMatcher', () => {
     expect(outcome.kind).toBe('matched');
   });
 
+  it('still accepts the REAL Win key when a remap is configured (Keyboard Lock mode)', () => {
+    const matcher = new ShortcutMatcher([parseChord('Win+E')], { metaRemap: ['ctrl', 'alt'] });
+    expect(matcher.handleEvent(event({ code: 'KeyE', metaKey: true })).kind).toBe('matched');
+    // Real Win + extra modifiers still fails.
+    expect(
+      matcher.handleEvent(event({ code: 'KeyE', metaKey: true, shiftKey: true })).kind,
+    ).toBe('failed');
+  });
+
   it('remap preserves additional expected modifiers', () => {
     const matcher = new ShortcutMatcher([parseChord('Win+Shift+S')], {
       metaRemap: ['ctrl', 'alt'],

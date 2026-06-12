@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { KeycapBuddy } from '@/components/shared/keycap-buddy';
 import { registry } from '@/content';
 import { dueShortcutIds, useProgress } from '@/features/progress';
 import { useI18n } from '@/lib/i18n/provider';
@@ -44,7 +44,7 @@ export function ReviewQueue() {
     return (
       <Card>
         <CardContent className="flex flex-col items-center gap-4 p-10 text-center">
-          <CheckCircle2 className="size-10 text-success" aria-hidden />
+          <KeycapBuddy mood="zen" size={110} className="animate-pop" />
           <h2 className="text-2xl font-bold">{dict.practice.allDoneTitle}</h2>
           <p className="text-muted-foreground">{dict.practice.allDoneBody}</p>
           <Link href={`/${locale}/learn`}>

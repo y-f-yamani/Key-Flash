@@ -1,12 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Check, Trophy } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { KeyCombo } from '@/components/shared/key-combo';
+import { KeycapBuddy } from '@/components/shared/keycap-buddy';
 import { registry } from '@/content';
 import {
   INITIAL_SIM_STATE,
@@ -16,6 +17,7 @@ import {
 } from '@/core/simulator';
 import { useProgress } from '@/features/progress';
 import { useKeyCapture } from '@/features/practice/use-key-capture';
+import { WinKeyHint } from '@/features/practice/win-key-mode';
 import { useI18n } from '@/lib/i18n/provider';
 import { SimulatorDesktop } from './desktop';
 
@@ -106,7 +108,7 @@ export function MissionRunner() {
         <CardContent className="flex flex-col gap-3 p-4" data-testid="mission-bar">
           {done ? (
             <div className="flex flex-col items-center gap-3 py-2 text-center">
-              <Trophy className="size-8 text-warning" aria-hidden />
+              <KeycapBuddy mood="cheer" size={100} className="animate-pop" />
               <h2 className="text-xl font-bold">{dict.simulator.allDoneTitle}</h2>
               <p className="text-sm text-muted-foreground">{dict.simulator.allDoneBody}</p>
               <Button onClick={restart}>{dict.simulator.restart}</Button>
@@ -138,7 +140,7 @@ export function MissionRunner() {
                     <KeyCombo keys={shortcut.keys} />
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">{dict.practice.metaRemapNote}</p>
+                <WinKeyHint />
               </>
             )
           )}

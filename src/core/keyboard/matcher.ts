@@ -4,8 +4,10 @@ import type { KeyChord, KeyEventLike, MatchOutcome, Modifier } from './types';
 export interface MatcherOptions {
   /**
    * Practice stand-in for the Win/Meta key (ADR-0004). When set, an expected
-   * `meta` modifier is satisfied by holding all of these modifiers instead.
-   * Default: no remap — the real Meta key is required.
+   * `meta` modifier is satisfied EITHER by the real Meta key or by holding
+   * all of these modifiers instead — so users in fullscreen Keyboard-Lock
+   * mode press the real ⊞ while everyone else uses the stand-in.
+   * Default: no remap — only the real Meta key matches.
    */
   readonly metaRemap?: readonly Modifier[];
 }
@@ -45,8 +47,8 @@ export class ShortcutMatcher {
   }
 
   handleChord(pressed: KeyChord): MatchOutcome {
-    const expected = this.effectiveChord(this.expected[this.stepIndex]);
-    if (chordsEqual(pressed, expected)) {
+    const accepted = this.acceptedChords(this.expected[this.stepIndex]);
+    if (accepted.some((chord) => chordsEqual(pressed, chord))) {
       this.stepIndex += 1;
       if (this.stepIndex >= this.expected.length) {
         this.stepIndex = 0;
@@ -58,12 +60,12 @@ export class ShortcutMatcher {
     return { kind: 'failed', pressed };
   }
 
-  /** Applies the meta remap to an expected chord, if configured. */
-  private effectiveChord(chord: KeyChord): KeyChord {
+  /** All chord shapes that satisfy this step: the real one, plus the remap. */
+  private acceptedChords(chord: KeyChord): KeyChord[] {
     const remap = this.options.metaRemap;
-    if (!remap || !chord.modifiers.includes('meta')) return chord;
+    if (!remap || !chord.modifiers.includes('meta')) return [chord];
     const modifiers = new Set<Modifier>(chord.modifiers.filter((m) => m !== 'meta'));
     for (const m of remap) modifiers.add(m);
-    return { modifiers: sortModifiers([...modifiers]), code: chord.code };
+    return [chord, { modifiers: sortModifiers([...modifiers]), code: chord.code }];
   }
 }

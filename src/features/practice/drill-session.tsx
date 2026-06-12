@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { PartyPopper } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ProgressBar } from '@/components/ui/progress-bar';
+import { KeycapBuddy } from '@/components/shared/keycap-buddy';
 import type { ShortcutDefinition } from '@/core/content';
 import { useProgress, type DrillOutcome } from '@/features/progress';
 import { useI18n } from '@/lib/i18n/provider';
@@ -50,7 +50,7 @@ export function DrillSession({ shortcuts, onComplete, completeAction }: DrillSes
     return (
       <Card data-testid="session-complete">
         <CardContent className="flex flex-col items-center gap-4 p-10 text-center">
-          <PartyPopper className="size-10 text-primary" aria-hidden />
+          <KeycapBuddy mood="cheer" size={110} className="animate-pop" />
           <h2 className="text-2xl font-bold">{dict.practice.sessionComplete}</h2>
           <Badge variant="success" className="px-4 py-1.5 text-sm">
             {dict.common.correct}: {correct} / {results.length}

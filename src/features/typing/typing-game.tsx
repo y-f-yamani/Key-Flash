@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { StatTile } from '@/components/shared/stat-tile';
+import { KeycapBuddy } from '@/components/shared/keycap-buddy';
 import { createRng } from '@/core/arena';
 import type { SprintResult } from '@/core/scoring';
 import {
@@ -167,6 +168,11 @@ export function TypingGame() {
     const { result, isRecord, xpEarned } = finished;
     return (
       <div className="flex flex-col gap-6" data-testid="typing-results">
+        <KeycapBuddy
+          mood={isRecord ? 'cheer' : 'happy'}
+          size={110}
+          className="mx-auto animate-pop"
+        />
         {isRecord && (
           <Badge variant="success" className="mx-auto px-4 py-1.5 text-sm">
             <Trophy className="size-4" /> {dict.arena.newRecord}

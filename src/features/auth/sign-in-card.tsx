@@ -5,6 +5,7 @@ import { Mail } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { KeycapBuddy } from '@/components/shared/keycap-buddy';
 import { getBrowserSupabase } from '@/lib/supabase/client';
 import { useI18n } from '@/lib/i18n/provider';
 
@@ -52,6 +53,7 @@ export function SignInCard() {
   return (
     <Card className="mx-auto w-full max-w-md">
       <CardHeader>
+        <KeycapBuddy mood="happy" size={84} className="mx-auto animate-bob" />
         <CardTitle>{dict.auth.signInTitle}</CardTitle>
         <CardDescription>{dict.auth.signInSubtitle}</CardDescription>
       </CardHeader>
