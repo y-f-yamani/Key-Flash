@@ -1,5 +1,6 @@
 import { SPRINT_RULES, scoreSprint, type SprintResult } from '../scoring';
 import type { DrillEvent } from '../scoring';
+import { REACTION_RULES, scoreReaction } from './reaction';
 
 /**
  * Arena mode rules as data + pure functions (strategy pattern). The game UI
@@ -18,8 +19,8 @@ export const ARENA_MODE_SLUGS = [
 
 export type ArenaModeSlug = (typeof ARENA_MODE_SLUGS)[number];
 
-/** Modes with shipped rules — 'reaction' needs a distinct UI and comes later. */
-export type PlayableModeSlug = Exclude<ArenaModeSlug, 'reaction'>;
+/** All six modes ship rules; 'reaction' renders its own UI on top of them. */
+export type PlayableModeSlug = ArenaModeSlug;
 
 export interface ModeRules {
   readonly slug: PlayableModeSlug;
@@ -101,6 +102,15 @@ export const MODES: Record<PlayableModeSlug, ModeRules> = {
     targetCount: null,
     minDifficulty: 1,
     score: scoreSprint,
+  },
+  reaction: {
+    slug: 'reaction',
+    timeLimitMs: null,
+    maxMisses: null,
+    // Clean rounds plus a sane allowance of false starts.
+    targetCount: REACTION_RULES.rounds * 3,
+    minDifficulty: 1,
+    score: scoreReaction,
   },
 };
 

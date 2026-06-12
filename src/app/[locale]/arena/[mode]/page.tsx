@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { MODES, getMode } from '@/core/arena';
 import { ArenaGame } from '@/features/arena/arena-game';
+import { ReactionGame } from '@/features/arena/reaction-game';
 import { isLocale } from '@/lib/i18n';
 
 // Modes are a fixed set defined in code — prerender every one.
@@ -20,10 +21,15 @@ export default async function ArenaModePage({
   if (!getMode(mode)) notFound(); // includes 'reaction' until implemented
 
   // Mode rules contain functions, so only the slug crosses the RSC boundary;
-  // the client component resolves the rules itself.
+  // the client component resolves the rules itself. Reaction has its own UI
+  // (signal/press loop instead of shortcut prompts).
   return (
     <div className="mx-auto w-full max-w-3xl">
-      <ArenaGame mode={mode} domainSlug="win11" />
+      {mode === 'reaction' ? (
+        <ReactionGame domainSlug="win11" />
+      ) : (
+        <ArenaGame mode={mode} domainSlug="win11" />
+      )}
     </div>
   );
 }

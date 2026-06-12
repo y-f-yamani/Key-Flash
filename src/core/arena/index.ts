@@ -1,4 +1,5 @@
 export { createRng, pickPrompt, type Rng } from './rng';
+export { REACTION_RULES, averageReactionMs, roundDelayMs, scoreReaction } from './reaction';
 export {
   ARENA_MODE_SLUGS,
   MODES,

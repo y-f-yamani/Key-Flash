@@ -15,7 +15,7 @@ import type { SprintResult } from '@/core/scoring';
 export const runSubmissionSchema = z.object({
   id: z.uuid(),
   domain: z.string().min(1).max(32),
-  mode: z.enum(['sprint', 'time-attack', 'survival', 'boss-rush', 'combo-rush']),
+  mode: z.enum(['sprint', 'time-attack', 'survival', 'boss-rush', 'combo-rush', 'reaction']),
   startedAt: z.number().int().nonnegative(),
   durationMs: z.number().int().positive().max(10 * 60_000),
   clientVersion: z.string().max(32).default(''),

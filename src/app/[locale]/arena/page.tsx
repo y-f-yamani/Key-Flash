@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Gauge, Heart, Link2, Skull, Target, Timer, Trophy } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getDictionary, isLocale } from '@/lib/i18n';
 
@@ -41,6 +40,12 @@ export default async function ArenaPage({
       title: dict.arena.comboRushTitle,
       desc: dict.arena.comboRushDesc,
     },
+    {
+      slug: 'reaction',
+      icon: Target,
+      title: dict.arena.reactionTitle,
+      desc: dict.arena.reactionDesc,
+    },
   ];
 
   return (
@@ -72,18 +77,7 @@ export default async function ArenaPage({
             </CardHeader>
           </Card>
         </Link>
-
-        <Card className="h-full opacity-60">
-          <CardHeader>
-            <Target className="size-7 text-muted-foreground" aria-hidden />
-            <CardTitle>{dict.arena.reactionTitle}</CardTitle>
-            <Badge variant="muted" className="w-fit">
-              {dict.arena.comingSoon}
-            </Badge>
-          </CardHeader>
-        </Card>
       </div>
-      <p className="text-sm text-muted-foreground">{dict.arena.modesLockedNote}</p>
     </div>
   );
 }

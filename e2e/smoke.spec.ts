@@ -80,6 +80,17 @@ test.describe('smoke', () => {
     await expect(page.getByTestId('mission-done')).toBeVisible();
   });
 
+  test('reaction test flags a false start when Space is pressed early', async ({ page }) => {
+    await page.goto('/en/arena/reaction');
+    await removeDevOverlay(page);
+    await page.getByTestId('start-reaction').click();
+    await expect(page.getByTestId('reaction-waiting')).toBeVisible();
+
+    // The signal needs ≥1.5s — pressing immediately is always a false start.
+    await page.keyboard.press('Space');
+    await expect(page.getByTestId('reaction-false-start')).toBeVisible();
+  });
+
   test('survival mode shows lives and ends after three misses', async ({ page }) => {
     await page.goto('/en/arena/survival');
     await removeDevOverlay(page);

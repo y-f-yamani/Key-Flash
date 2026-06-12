@@ -14,10 +14,10 @@ function evt(correct: boolean, promptAt: number, reaction: number): DrillEvent {
 }
 
 describe('getMode', () => {
-  it('resolves implemented modes and rejects unknown ones', () => {
+  it('resolves all six modes and rejects unknown ones', () => {
     expect(getMode('sprint')?.slug).toBe('sprint');
     expect(getMode('boss-rush')?.minDifficulty).toBe(3);
-    expect(getMode('reaction')).toBeUndefined(); // not implemented yet
+    expect(getMode('reaction')?.targetCount).toBe(15);
     expect(getMode('cheat-mode')).toBeUndefined();
   });
 });
