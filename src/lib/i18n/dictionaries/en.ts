@@ -189,6 +189,11 @@ export const en = {
     playAgain: 'Duel again',
     abandoned: 'Match abandoned — nobody finished. No rating change.',
     signInFirst: 'Sign in to play ranked duels.',
+    playFriend: 'Play a friend',
+    shareRoom: 'Share this link — the duel begins the moment your friend opens it.',
+    copyLink: 'Copy link',
+    copied: 'Copied!',
+    waitingFriend: 'Waiting for your friend to join…',
   },
 
   typingDuel: {

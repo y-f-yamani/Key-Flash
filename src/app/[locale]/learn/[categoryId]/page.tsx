@@ -3,12 +3,8 @@ import { registry } from '@/content';
 import { LessonList } from '@/features/learn/lesson-list';
 import { getDictionary, isLocale } from '@/lib/i18n';
 
-// Catalog is code (ADR-0002) — every category is known at build time.
-export const dynamicParams = false;
-
-export function generateStaticParams() {
-  return (registry.getDomain('win11')?.categories ?? []).map((c) => ({ categoryId: c.id }));
-}
+// Rendered on demand for symmetry with the nested lesson route; the page
+// calls notFound() for unknown categories.
 
 export default async function CategoryPage({
   params,

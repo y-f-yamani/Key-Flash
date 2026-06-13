@@ -23,6 +23,20 @@ export const DUEL_KINDS: Record<DuelKind, { domain: string; mode: string }> = {
   typing: { domain: 'typing', mode: 'typing' },
 };
 
+/**
+ * The match `mode` value for a queue. Private friend rooms use a distinct
+ * suffix so random matchmaking (which filters by exact mode) never pairs a
+ * stranger into them — no schema change needed. Ratings still use the kind's
+ * domain, so a private duel counts on the same ladder.
+ */
+export function queueMode(kind: DuelKind, isPrivate: boolean): string {
+  return isPrivate ? `${DUEL_KINDS[kind].mode}-private` : DUEL_KINDS[kind].mode;
+}
+
+export function isPrivateMode(mode: string): boolean {
+  return mode.endsWith('-private');
+}
+
 interface PlayerRow {
   match_id: string;
   user_id: string;
@@ -48,7 +62,8 @@ export async function joinOrCreateMatch(
   userId: string,
   kind: DuelKind,
 ): Promise<{ matchId: string }> {
-  const { domain, mode } = DUEL_KINDS[kind];
+  const { domain } = DUEL_KINDS[kind];
+  const mode = queueMode(kind, false);
 
   // Already queued or playing in this queue? Return that match (idempotent).
   const { data: mine } = await service
@@ -113,6 +128,57 @@ export async function cancelPending(service: SupabaseClient, userId: string): Pr
   for (const row of mine ?? []) {
     await service.from('matches').delete().eq('id', row.match_id).eq('status', 'pending');
   }
+}
+
+/** Creates a private room (a pending match outside the random queue). */
+export async function createPrivateMatch(
+  service: SupabaseClient,
+  userId: string,
+  kind: DuelKind,
+): Promise<{ matchId: string }> {
+  const { domain } = DUEL_KINDS[kind];
+  const matchId = crypto.randomUUID();
+  await service.from('matches').insert({
+    id: matchId,
+    domain_slug: domain,
+    mode: queueMode(kind, true),
+    seed: Math.floor(Math.random() * 2_147_483_647),
+    status: 'pending',
+  });
+  await service.from('match_players').insert({ match_id: matchId, user_id: userId });
+  return { matchId };
+}
+
+/**
+ * Joins a specific match by id (a shared friend room). Succeeds only when the
+ * room is still pending, private, has exactly one OTHER player, and isn't
+ * already joined by this user. Flipping pending→active is the join lock.
+ */
+export async function joinMatchById(
+  service: SupabaseClient,
+  userId: string,
+  matchId: string,
+): Promise<{ ok: boolean; reason?: string }> {
+  const match = await loadMatch(service, matchId);
+  if (!match) return { ok: false, reason: 'not-found' };
+  if (!isPrivateMode(match.mode)) return { ok: false, reason: 'not-a-room' };
+
+  const players = await loadPlayers(service, matchId);
+  if (players.some((p) => p.user_id === userId)) return { ok: true }; // already in
+  if (match.status === 'active') return { ok: true }; // both seats taken, you're rejoining view
+  if (match.status !== 'pending') return { ok: false, reason: 'room-closed' };
+  if (players.length !== 1) return { ok: false, reason: 'room-full' };
+
+  const { data: claimed } = await service
+    .from('matches')
+    .update({ status: 'active', started_at: new Date().toISOString() })
+    .eq('id', matchId)
+    .eq('status', 'pending')
+    .select('id');
+  if (!claimed || claimed.length === 0) return { ok: false, reason: 'room-closed' };
+
+  await service.from('match_players').insert({ match_id: matchId, user_id: userId });
+  return { ok: true };
 }
 
 export async function getMatchView(

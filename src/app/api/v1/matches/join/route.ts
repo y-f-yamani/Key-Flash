@@ -1,15 +1,25 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { cancelPending, joinOrCreateMatch } from '@/features/multiplayer/match-service';
+import {
+  cancelPending,
+  createPrivateMatch,
+  joinOrCreateMatch,
+} from '@/features/multiplayer/match-service';
 import { problem } from '@/lib/http';
 import { getServerSupabase, getServiceSupabase } from '@/lib/supabase/server';
 
-/** POST = enter a duel queue (idempotent). DELETE = leave all queues. */
+/**
+ * POST = enter a queue (idempotent random match) or, with { private: true },
+ * open a private friend room. DELETE = leave all pending queues.
+ */
 export async function POST(request: NextRequest) {
   const ctx = await requireUser();
   if ('response' in ctx) return ctx.response;
   const body = await request.json().catch(() => ({}));
   const kind = body?.kind === 'typing' ? 'typing' : 'shortcut';
-  const { matchId } = await joinOrCreateMatch(ctx.service, ctx.userId, kind);
+
+  const { matchId } = body?.private
+    ? await createPrivateMatch(ctx.service, ctx.userId, kind)
+    : await joinOrCreateMatch(ctx.service, ctx.userId, kind);
   return NextResponse.json({ matchId }, { status: 201 });
 }
 

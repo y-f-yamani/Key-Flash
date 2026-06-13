@@ -39,9 +39,10 @@ export async function POST(
   if (!match) return problem(404, 'match-not-found', 'No such match.');
 
   // The match mode decides which judge runs; both re-compute the score
-  // server-side from raw input logs.
+  // server-side from raw input logs. Private rooms share the same judges
+  // (mode 'typing' or 'typing-private').
   let validated: { score: number; accuracy: number };
-  if (match.mode === 'typing') {
+  if (match.mode.startsWith('typing')) {
     const parsed = typingDuelSubmissionSchema.safeParse(body);
     if (!parsed.success) {
       return problem(400, 'invalid-submission', parsed.error.issues[0]?.message ?? 'Bad payload');

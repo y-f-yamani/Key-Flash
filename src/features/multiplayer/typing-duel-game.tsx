@@ -16,6 +16,8 @@ import { getBrowserSupabase } from '@/lib/supabase/client';
 import { useI18n } from '@/lib/i18n/provider';
 import { cn } from '@/lib/utils';
 import { fetchMatch, joinQueue, leaveQueue, submitDuel } from './match-client';
+import { RoomShare } from './room-share';
+import { useFriendRoom } from './use-friend-room';
 import type { MatchView } from './schemas';
 import { TYPING_DUEL_RULES, duelTypingTarget } from './validate-typing';
 
@@ -42,6 +44,7 @@ export function TypingDuelGame() {
   const auth = useOptionalAuth();
   const signedIn = Boolean(auth?.session);
   const myUserId = auth?.session?.user.id ?? '';
+  const { roomLink, pendingJoinId, host, acceptJoin, clearLink } = useFriendRoom('typing');
 
   const [phase, setPhase] = useState<Phase>('idle');
   const [match, setMatch] = useState<MatchView | null>(null);
@@ -83,9 +86,39 @@ export function TypingDuelGame() {
 
   const cancel = useCallback(async () => {
     await leaveQueue();
+    clearLink();
     setMatch(null);
     setPhase('idle');
-  }, []);
+  }, [clearLink]);
+
+  const hostRoom = useCallback(async () => {
+    setPhase('searching');
+    setOpponent({ typed: '', wpm: 0 });
+    setSession(null);
+    submittedRef.current = false;
+    keystrokesRef.current = [];
+    const matchId = await host();
+    if (!matchId) {
+      setPhase('idle');
+      return;
+    }
+    setMatch({ id: matchId } as MatchView);
+  }, [host]);
+
+  // A friend's link carries ?join=<id>: auto-join that room on arrival.
+  useEffect(() => {
+    if (!signedIn || !pendingJoinId || phaseRef.current !== 'idle') return;
+    let done = false;
+    setPhase('searching');
+    void acceptJoin(pendingJoinId).then((ok) => {
+      if (done) return;
+      if (ok) setMatch({ id: pendingJoinId } as MatchView);
+      else setPhase('idle');
+    });
+    return () => {
+      done = true;
+    };
+  }, [signedIn, pendingJoinId, acceptJoin]);
 
   const beginCountdown = useCallback((view: MatchView) => {
     targetRef.current = duelTypingTarget(view.seed);
@@ -223,15 +256,21 @@ export function TypingDuelGame() {
           <KeycapBuddy mood="focus" size={110} className="animate-bob" />
           <h1 className="text-3xl font-extrabold">{dict.typingDuel.title}</h1>
           <p className="max-w-md text-muted-foreground">{dict.typingDuel.desc}</p>
-          <Button size="lg" onClick={() => void search()} data-testid="find-typing-opponent">
-            <Keyboard className="size-5" /> {dict.duel.findOpponent}
-          </Button>
+          <div className="flex flex-col items-center gap-3">
+            <Button size="lg" onClick={() => void search()} data-testid="find-typing-opponent">
+              <Keyboard className="size-5" /> {dict.duel.findOpponent}
+            </Button>
+            <Button size="lg" variant="outline" onClick={() => void hostRoom()}>
+              {dict.duel.playFriend}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   if (phase === 'searching') {
+    if (roomLink) return <RoomShare link={roomLink} onCancel={() => void cancel()} />;
     return (
       <Card>
         <CardContent className="flex flex-col items-center gap-5 p-10 text-center">

@@ -3,14 +3,10 @@ import { lessonsFor } from '@/content';
 import { LessonRunner } from '@/features/learn/lesson-runner';
 import { isLocale } from '@/lib/i18n';
 
-// Lessons derive deterministically from the catalog — prerender all of them.
-export const dynamicParams = false;
-
-export function generateStaticParams({ params }: { params: { categoryId: string } }) {
-  return lessonsFor('win11')
-    .filter((lesson) => lesson.categoryId === params.categoryId)
-    .map((lesson) => ({ lessonIndex: String(lesson.index) }));
-}
+// Rendered on demand: a nested generateStaticParams here would depend on the
+// parent categoryId, which this Next version does not inject into the child,
+// causing valid lessons to 404 in production. The page calls notFound() for
+// anything invalid, so on-demand rendering is both correct and simpler.
 
 export default async function LessonPage({
   params,

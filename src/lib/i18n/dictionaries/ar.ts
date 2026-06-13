@@ -184,6 +184,11 @@ export const ar: Dictionary = {
     playAgain: 'مبارزة أخرى',
     abandoned: 'أُهملت المباراة — لم ينهِ أحد. لا تغيير في التصنيف.',
     signInFirst: 'سجّل الدخول لخوض مبارزات مصنّفة.',
+    playFriend: 'العب مع صديق',
+    shareRoom: 'شارك هذا الرابط — تبدأ المبارزة لحظة فتح صديقك له.',
+    copyLink: 'انسخ الرابط',
+    copied: 'تم النسخ!',
+    waitingFriend: 'بانتظار انضمام صديقك…',
   },
 
   typingDuel: {

@@ -23,18 +23,13 @@ export function LessonList({ domainSlug, categoryId }: { domainSlug: string; cat
         return (
           <Card key={lesson.id}>
             <CardContent className="flex flex-col gap-4 p-5">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <span className="font-bold">
-                    {dict.learn.lesson} {lesson.index + 1}
-                  </span>
-                  <Badge variant={progress >= 0.999 ? 'success' : 'muted'}>
-                    {Math.round(progress * 100)}% {dict.learn.masteredLabel}
-                  </Badge>
-                </div>
-                <Link href={`/${locale}/learn/${categoryId}/${lesson.index}`}>
-                  <Button size="sm">{dict.learn.startLesson}</Button>
-                </Link>
+              <div className="flex items-center gap-3">
+                <span className="font-bold">
+                  {dict.learn.lesson} {lesson.index + 1}
+                </span>
+                <Badge variant={progress >= 0.999 ? 'success' : 'muted'}>
+                  {Math.round(progress * 100)}% {dict.learn.masteredLabel}
+                </Badge>
               </div>
               <ul className="flex flex-col gap-2">
                 {lesson.shortcutIds.map((id) => {
@@ -48,6 +43,9 @@ export function LessonList({ domainSlug, categoryId }: { domainSlug: string; cat
                   );
                 })}
               </ul>
+              <Link href={`/${locale}/learn/${categoryId}/${lesson.index}`} className="w-fit">
+                <Button size="sm">{dict.learn.startLesson}</Button>
+              </Link>
             </CardContent>
           </Card>
         );
