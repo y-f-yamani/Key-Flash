@@ -26,11 +26,21 @@ test.describe('smoke', () => {
     await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
   });
 
-  test('learning path starts the current node and runs its first drill', async ({ page }) => {
+  test('learning path teaches then tests the current node', async ({ page }) => {
     await page.goto('/en/learn');
     // Fresh player: only the first node (Essentials lesson 1) is unlocked.
     await page.getByRole('button', { name: 'Start', exact: true }).first().click();
     await expect(page).toHaveURL(/\/en\/learn\/essentials\/0$/);
+
+    // A lesson now opens in the LEARN phase (teach cards) before testing.
+    await expect(page.getByTestId('lesson-teach')).toBeVisible();
+    await expect(page.getByTestId('keyboard-view').first()).toBeVisible();
+
+    // Click through Learn into Practice.
+    for (let i = 0; i < 8; i++) {
+      if (await page.getByTestId('capture-drill').isVisible().catch(() => false)) break;
+      await page.getByTestId('teach-next').click();
+    }
 
     // First drill of Essentials lesson 1 is Copy (Ctrl+C) — press the real
     // keys, but only once the drill reports its listener is attached.

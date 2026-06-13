@@ -67,6 +67,10 @@ export const en = {
     lessonComplete: 'Lesson complete!',
     xpEarned: 'XP earned',
     backToPath: 'Back to learning path',
+    learnBadge: 'Learn',
+    next: 'Next',
+    practice: 'Practice',
+    replay: 'Replay',
   },
 
   path: {

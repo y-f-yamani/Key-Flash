@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { KeyCombo } from '@/components/shared/key-combo';
+import { KeyboardView } from '@/components/shared/keyboard-view';
 import type { ShortcutDefinition } from '@/core/content';
 import { useI18n } from '@/lib/i18n/provider';
 import { useKeyCapture, type CaptureResult } from './use-key-capture';
@@ -77,9 +78,10 @@ export function CaptureDrill({ shortcut, onResult }: CaptureDrillProps) {
                 )}
               </>
             )}
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex w-full flex-col items-center gap-2">
               <span className="text-sm text-muted-foreground">{dict.practice.expected}</span>
               <KeyCombo keys={shortcut.keys} size="lg" />
+              <KeyboardView keys={shortcut.keys} className="mt-2" />
             </div>
             <Button autoFocus onClick={next} data-testid="drill-next">
               {dict.practice.next}

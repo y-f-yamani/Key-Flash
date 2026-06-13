@@ -62,6 +62,10 @@ export const ar: Dictionary = {
     lessonComplete: 'اكتمل الدرس!',
     xpEarned: 'نقاط الخبرة المكتسبة',
     backToPath: 'العودة إلى مسار التعلّم',
+    learnBadge: 'تعلّم',
+    next: 'التالي',
+    practice: 'تدرّب',
+    replay: 'إعادة',
   },
 
   path: {
