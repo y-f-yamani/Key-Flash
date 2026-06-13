@@ -149,7 +149,7 @@ export function MissionRunner() {
                     {dict.simulator.mission} {missionIndex + 1} / {MISSION_SHORTCUTS.length}
                   </span>
                 </div>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col items-center gap-2 text-center">
                   <div>
                     <p className="font-bold">{shortcut.name[locale]}</p>
                     <p className="text-sm text-muted-foreground">
@@ -157,11 +157,7 @@ export function MissionRunner() {
                     </p>
                   </div>
                   {justSucceeded ? (
-                    <Badge
-                      variant="success"
-                      className="w-fit px-3 py-1 text-sm"
-                      data-testid="mission-done"
-                    >
+                    <Badge variant="success" className="px-3 py-1 text-sm" data-testid="mission-done">
                       <Check className="size-4" /> {dict.simulator.missionDone}
                     </Badge>
                   ) : (
@@ -169,14 +165,13 @@ export function MissionRunner() {
                   )}
                 </div>
                 {offerSkip && !justSucceeded && (
-                  <div className="flex flex-col gap-2 rounded-lg bg-muted px-3 py-2 text-xs">
+                  <div className="flex flex-col items-center gap-2 rounded-lg bg-muted px-3 py-2 text-center text-xs">
                     <span>{dict.simulator.needsWinMode}</span>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={skipMission}
                       data-testid="mission-skip"
-                      className="w-fit"
                     >
                       <SkipForward className="size-3.5" /> {dict.simulator.skip}
                     </Button>
