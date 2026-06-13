@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, SkipForward } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -28,7 +29,7 @@ import { SimulatorDesktop } from './desktop';
  * desktops, end with a screenshot. Alt+Tab and Win+Tab work with the
  * Ctrl+Alt stand-in or, best, the real keys in ⊞ fullscreen mode.
  */
-const MISSION_SHORTCUTS = [
+const DEFAULT_MISSION_SHORTCUTS = [
   'win11.win-e',
   'win11.win-i',
   'win11.alt-tab',
@@ -52,24 +53,40 @@ const SUCCESS_PAUSE_MS = 900;
  */
 const LOCK_REQUIRED = new Set(['win11.alt-tab', 'win11.win-tab']);
 
-export function MissionRunner() {
+/**
+ * Drives the Windows simulator through a mission script.
+ *
+ * Standalone sandbox (`/simulator`) uses the default narrative script; a
+ * category capstone passes that category's simulator-mappable shortcuts plus
+ * `completeHref` so finishing returns to the Learning Path.
+ */
+export function MissionRunner({
+  missionShortcutIds = DEFAULT_MISSION_SHORTCUTS,
+  completeHref,
+  completeLabel,
+}: {
+  missionShortcutIds?: readonly string[];
+  completeHref?: string;
+  completeLabel?: string;
+} = {}) {
   const { locale, dict } = useI18n();
   const { recordDrill, completeLesson } = useProgress();
 
+  const missions = missionShortcutIds;
   const [simState, setSimState] = useState<SimState>(INITIAL_SIM_STATE);
   const [missionIndex, setMissionIndex] = useState(0);
   const [justSucceeded, setJustSucceeded] = useState(false);
   const [snipSeq, setSnipSeq] = useState(0);
   const lessonAwarded = useRef(false);
 
-  const done = missionIndex >= MISSION_SHORTCUTS.length;
-  const shortcut = done ? null : registry.getShortcut(MISSION_SHORTCUTS[missionIndex]);
+  const done = missionIndex >= missions.length;
+  const shortcut = done ? null : registry.getShortcut(missions[missionIndex]);
   const { active: winKeyActive } = useWinKeyMode();
   const offerSkip = !done && !!shortcut && LOCK_REQUIRED.has(shortcut.id) && !winKeyActive;
 
   const handleResult = useCallback(
     ({ correct, reactionMs }: { correct: boolean; reactionMs: number }) => {
-      const current = registry.getShortcut(MISSION_SHORTCUTS[missionIndex]);
+      const current = registry.getShortcut(missions[missionIndex]);
       if (!current || justSucceeded) return;
       recordDrill({ shortcutId: current.id, correct, reactionMs }, current.difficulty);
       if (!correct) return; // matcher already reset; let them retry
@@ -81,7 +98,7 @@ export function MissionRunner() {
       }
       setJustSucceeded(true);
     },
-    [missionIndex, justSucceeded, recordDrill],
+    [missions, missionIndex, justSucceeded, recordDrill],
   );
 
   // Brief success pause so the desktop reaction is visible, then advance.
@@ -91,7 +108,7 @@ export function MissionRunner() {
       setJustSucceeded(false);
       setMissionIndex((i) => {
         const next = i + 1;
-        if (next >= MISSION_SHORTCUTS.length && !lessonAwarded.current) {
+        if (next >= missions.length && !lessonAwarded.current) {
           lessonAwarded.current = true;
           completeLesson();
         }
@@ -99,7 +116,7 @@ export function MissionRunner() {
       });
     }, SUCCESS_PAUSE_MS);
     return () => window.clearTimeout(timer);
-  }, [justSucceeded, completeLesson]);
+  }, [justSucceeded, completeLesson, missions.length]);
 
   useKeyCapture({
     keys: shortcut?.keys ?? [],
@@ -116,7 +133,7 @@ export function MissionRunner() {
 
   /** Skip an OS-owned mission without XP — nobody gets stuck outside ⊞ mode. */
   function skipMission() {
-    const current = registry.getShortcut(MISSION_SHORTCUTS[missionIndex]);
+    const current = registry.getShortcut(missions[missionIndex]);
     const action = current ? actionForShortcut(current.id) : null;
     if (action) {
       // The desktop still reacts, so the story stays coherent.
@@ -135,18 +152,21 @@ export function MissionRunner() {
               <KeycapBuddy mood="cheer" size={100} className="animate-pop" />
               <h2 className="text-xl font-bold">{dict.simulator.allDoneTitle}</h2>
               <p className="text-sm text-muted-foreground">{dict.simulator.allDoneBody}</p>
-              <Button onClick={restart}>{dict.simulator.restart}</Button>
+              {completeHref ? (
+                <Link href={completeHref}>
+                  <Button>{completeLabel ?? dict.simulator.restart}</Button>
+                </Link>
+              ) : (
+                <Button onClick={restart}>{dict.simulator.restart}</Button>
+              )}
             </div>
           ) : (
             shortcut && (
               <>
                 <div className="flex items-center gap-3">
-                  <ProgressBar
-                    value={missionIndex / MISSION_SHORTCUTS.length}
-                    className="flex-1"
-                  />
+                  <ProgressBar value={missionIndex / missions.length} className="flex-1" />
                   <span className="text-sm tabular-nums text-muted-foreground">
-                    {dict.simulator.mission} {missionIndex + 1} / {MISSION_SHORTCUTS.length}
+                    {dict.simulator.mission} {missionIndex + 1} / {missions.length}
                   </span>
                 </div>
                 <div className="flex flex-col items-center gap-2 text-center">

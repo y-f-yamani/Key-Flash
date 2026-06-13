@@ -29,7 +29,7 @@ export function LessonRunner({ lesson }: { lesson: Lesson }) {
       }}
       completeAction={{
         label: dict.learn.backToPath,
-        onClick: () => router.push(`/${locale}/learn/${lesson.categoryId}`),
+        onClick: () => router.push(`/${locale}/learn`),
       }}
     />
   );

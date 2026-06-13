@@ -64,6 +64,23 @@ export const ar: Dictionary = {
     backToPath: 'العودة إلى مسار التعلّم',
   },
 
+  path: {
+    title: 'رحلتك نحو الإتقان',
+    subtitle: 'تعلّم كل مجموعة اختصارات ثم أثبتها في المحاكي. اصعد إلى القمة.',
+    summit: 'القمة — مستخدم ويندوز محترف',
+    base: 'ابدأ من هنا',
+    lesson: 'درس',
+    simCapstone: 'مهمة المحاكي',
+    drillCapstone: 'تحدي الإتقان',
+    capstoneHint: 'وظّف الفئة كاملة',
+    youAreHere: 'أنت هنا',
+    locked: 'مقفل',
+    lockedHint: 'أنهِ الخطوة التي تحتها لفتحه',
+    start: 'ابدأ',
+    review: 'مراجعة',
+    backToPath: 'العودة إلى المسار',
+  },
+
   practice: {
     title: 'التدريب',
     subtitle: 'راجع الاختصارات المستحقة قبل أن تتلاشى من ذاكرتك.',

@@ -69,6 +69,23 @@ export const en = {
     backToPath: 'Back to learning path',
   },
 
+  path: {
+    title: 'Your climb to mastery',
+    subtitle: 'Learn each set of shortcuts, then prove it in the simulator. Reach the summit.',
+    summit: 'Summit — Windows Power User',
+    base: 'Start here',
+    lesson: 'Lesson',
+    simCapstone: 'Simulator mission',
+    drillCapstone: 'Mastery challenge',
+    capstoneHint: 'Put the whole category to work',
+    youAreHere: 'You are here',
+    locked: 'Locked',
+    lockedHint: 'Finish the step below to unlock',
+    start: 'Start',
+    review: 'Review',
+    backToPath: 'Back to the path',
+  },
+
   practice: {
     title: 'Practice',
     subtitle: 'Review due shortcuts before they fade.',

@@ -26,11 +26,10 @@ test.describe('smoke', () => {
     await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
   });
 
-  test('learning path lists categories with lessons', async ({ page }) => {
+  test('learning path starts the current node and runs its first drill', async ({ page }) => {
     await page.goto('/en/learn');
-    await page.getByText('Essentials').click();
-    await expect(page).toHaveURL(/\/en\/learn\/essentials$/);
-    await page.getByRole('button', { name: 'Start lesson' }).first().click();
+    // Fresh player: only the first node (Essentials lesson 1) is unlocked.
+    await page.getByRole('button', { name: 'Start', exact: true }).first().click();
     await expect(page).toHaveURL(/\/en\/learn\/essentials\/0$/);
 
     // First drill of Essentials lesson 1 is Copy (Ctrl+C) — press the real
@@ -38,6 +37,13 @@ test.describe('smoke', () => {
     await expect(page.getByTestId('capture-drill')).toHaveAttribute('data-armed', 'true');
     await page.keyboard.press('Control+c');
     await expect(page.getByText('Correct!')).toBeVisible();
+  });
+
+  test('learning path locks later nodes until earlier ones are done', async ({ page }) => {
+    await page.goto('/en/learn');
+    await expect(page.getByText('You are here')).toBeVisible();
+    // Locked nodes show the lock hint, not a Start button.
+    await expect(page.getByText('Finish the step below to unlock').first()).toBeVisible();
   });
 
   test('sprint run starts and shows a live timer', async ({ page }) => {
