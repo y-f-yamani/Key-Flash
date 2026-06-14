@@ -41,34 +41,41 @@ export function LessonTeach({
 
   return (
     <Card data-testid="lesson-teach">
-      <CardContent className="flex flex-col items-center gap-4 p-6 text-center sm:p-8">
-        <Badge variant="accent">
-          <GraduationCap className="size-3.5" /> {dict.learn.learnBadge}
-        </Badge>
-        <h2 className="text-2xl font-bold">{shortcut.name[locale]}</h2>
-        <p className="max-w-md text-muted-foreground">{shortcut.description[locale]}</p>
-
-        <KeyCombo keys={shortcut.keys} size="lg" />
-
-        {/* Simulator above the keyboard: see the effect, then the keys. */}
-        <TeachPreview key={shortcut.id} shortcut={shortcut} />
-        <KeyboardView keys={shortcut.keys} />
-
-        <div className="flex w-full max-w-md items-center gap-3">
-          <ProgressBar value={(index + 1) / shortcuts.length} className="flex-1" />
-          <span className="text-sm tabular-nums text-muted-foreground">
-            {index + 1} / {shortcuts.length}
-          </span>
+      <CardContent className="flex flex-col gap-3 p-4 sm:p-5">
+        {/* compact header */}
+        <div className="flex flex-col items-center gap-1.5 text-center">
+          <Badge variant="accent">
+            <GraduationCap className="size-3.5" /> {dict.learn.learnBadge}
+          </Badge>
+          <h2 className="text-xl font-bold sm:text-2xl">{shortcut.name[locale]}</h2>
+          <p className="max-w-2xl text-sm text-muted-foreground">{shortcut.description[locale]}</p>
+          <KeyCombo keys={shortcut.keys} size="lg" />
         </div>
 
-        <Button
-          size="lg"
-          autoFocus
-          data-testid="teach-next"
-          onClick={() => (isLast ? onDone() : setIndex(index + 1))}
-        >
-          {isLast ? dict.learn.practice : dict.learn.next}
-        </Button>
+        {/* Side by side on desktop so it fits one screen; stacks (sim above
+            keyboard) on narrow widths. */}
+        <div className="grid items-center gap-4 lg:grid-cols-2">
+          <TeachPreview key={shortcut.id} shortcut={shortcut} />
+          <KeyboardView keys={shortcut.keys} />
+        </div>
+
+        {/* compact footer */}
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex w-full max-w-md items-center gap-3">
+            <ProgressBar value={(index + 1) / shortcuts.length} className="flex-1" />
+            <span className="text-sm tabular-nums text-muted-foreground">
+              {index + 1} / {shortcuts.length}
+            </span>
+          </div>
+          <Button
+            size="lg"
+            autoFocus
+            data-testid="teach-next"
+            onClick={() => (isLast ? onDone() : setIndex(index + 1))}
+          >
+            {isLast ? dict.learn.practice : dict.learn.next}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
