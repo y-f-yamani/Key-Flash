@@ -122,17 +122,21 @@ export function KeyboardView({ keys, className }: { keys: readonly KeyChord[]; c
   return (
     <div
       dir="ltr"
-      className={cn('mx-auto flex w-full max-w-xl flex-col gap-1 select-none', className)}
       data-testid="keyboard-view"
+      className={cn(
+        'mx-auto flex w-full max-w-2xl select-none flex-col gap-1.5 rounded-2xl p-3 shadow-2xl ring-1 ring-black/50',
+        'bg-gradient-to-b from-neutral-800 to-neutral-950',
+        className,
+      )}
     >
       {ROWS.map((row, i) => (
-        <div key={i} className="flex gap-1">
+        <div key={i} className="flex gap-1.5">
           {row.map((key) => (
             <KeyCell key={key.code} keyDef={key} lit={lit.has(key.code)} main={main.has(key.code)} />
           ))}
         </div>
       ))}
-      <div className="mt-1 flex justify-center gap-1">
+      <div className="mt-0.5 flex justify-center gap-1.5">
         {NAV_ROW.map((key) => (
           <KeyCell key={key.code} keyDef={key} lit={lit.has(key.code)} main={main.has(key.code)} small />
         ))}
@@ -158,13 +162,13 @@ function KeyCell({
       style={{ flexGrow: keyDef.w ?? 1, flexBasis: 0 }}
       data-lit={lit ? (main ? 'main' : 'mod') : undefined}
       className={cn(
-        'flex items-center justify-center rounded-md border text-center font-mono leading-none transition-colors',
-        small ? 'h-7 text-[0.6rem]' : 'h-8 text-[0.7rem] sm:h-9 sm:text-xs',
+        'flex items-center justify-center rounded-lg border-b-[3px] text-center font-medium leading-none transition-all duration-200',
+        small ? 'h-7 text-[0.6rem]' : 'h-9 text-[0.7rem] sm:h-11 sm:text-xs',
         lit
           ? main
-            ? 'animate-pulse border-primary bg-primary text-primary-foreground shadow-[0_0_12px_var(--primary)]'
-            : 'border-accent bg-accent/80 text-accent-foreground'
-          : 'border-border bg-card text-muted-foreground',
+            ? 'z-10 scale-[1.08] border-violet-900 bg-gradient-to-b from-violet-400 to-violet-600 text-white shadow-[0_0_20px_4px_rgba(139,92,246,0.75)]'
+            : 'border-cyan-800 bg-gradient-to-b from-cyan-400 to-cyan-600 text-white shadow-[0_0_14px_2px_rgba(34,211,238,0.55)]'
+          : 'border-black/60 bg-gradient-to-b from-neutral-600 to-neutral-700 text-neutral-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]',
       )}
     >
       {label}

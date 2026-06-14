@@ -50,9 +50,13 @@ export function LessonTeach({
         <KeyCombo keys={shortcut.keys} size="lg" />
         <KeyboardView keys={shortcut.keys} />
 
-        {action && (
-          <TeachSim key={shortcut.id} action={action} replayLabel={dict.learn.replay} />
-        )}
+        {/* Always show the Windows 11 screen so the effect is concrete. */}
+        <TeachSim
+          key={shortcut.id}
+          action={action}
+          toastMessage={shortcut.name[locale]}
+          replayLabel={dict.learn.replay}
+        />
 
         <div className="flex w-full max-w-md items-center gap-3">
           <ProgressBar value={(index + 1) / shortcuts.length} className="flex-1" />
@@ -75,31 +79,48 @@ export function LessonTeach({
 }
 
 /**
- * Auto-playing simulator preview for one shortcut's action. Mounted with a
- * key per shortcut, so it starts seeded and animates once; "Replay" re-arms.
+ * Auto-playing Windows 11 preview for one shortcut. Mounted with a key per
+ * shortcut, so it starts seeded and animates once; "Replay" re-arms. Window
+ * shortcuts perform their action on screen; shortcuts with no window effect
+ * (Copy, Save, …) raise a Windows notification toast instead — so there is
+ * always a Windows screen to watch.
  */
-function TeachSim({ action, replayLabel }: { action: SimAction; replayLabel: string }) {
+function TeachSim({
+  action,
+  toastMessage,
+  replayLabel,
+}: {
+  action: SimAction | null;
+  toastMessage: string;
+  replayLabel: string;
+}) {
   const [state, setState] = useState<SimState>(() => seedFor(action));
   const [snipSeq, setSnipSeq] = useState(0);
+  const [toast, setToast] = useState<string | null>(null);
   const [arm, setArm] = useState(0);
 
-  // Show the seeded "before", then perform the action so the change is visible.
+  // Show the seeded "before", then perform the action (or raise a toast).
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      if (action.kind === 'snip') setSnipSeq((n) => n + 1);
-      setState(applySimAction(seedFor(action), action));
+      if (action) {
+        if (action.kind === 'snip') setSnipSeq((n) => n + 1);
+        setState(applySimAction(seedFor(action), action));
+      } else {
+        setToast(toastMessage);
+      }
     }, 650);
     return () => window.clearTimeout(timer);
-  }, [action, arm]);
+  }, [action, toastMessage, arm]);
 
   function replay() {
     setState(seedFor(action));
+    setToast(null);
     setArm((n) => n + 1);
   }
 
   return (
     <div className="flex w-full flex-col items-center gap-2">
-      <SimulatorDesktop state={state} snipSeq={snipSeq} />
+      <SimulatorDesktop state={state} snipSeq={snipSeq} toast={toast} />
       <Button variant="ghost" size="sm" onClick={replay}>
         <RotateCcw className="size-3.5" /> {replayLabel}
       </Button>
@@ -110,12 +131,12 @@ function TeachSim({ action, replayLabel }: { action: SimAction; replayLabel: str
 /**
  * A meaningful before-state for the preview: app-opening shortcuts start on a
  * bare desktop so the window appearing is visible; everything else starts
- * with two windows open so snaps, switches and desktop tricks have something
- * to act on.
+ * with windows open so snaps, switches, desktop tricks and notifications have
+ * a populated screen behind them.
  */
-function seedFor(action: SimAction): SimState {
-  if (action.kind === 'open-app') return INITIAL_SIM_STATE;
+function seedFor(action: SimAction | null): SimState {
+  if (action?.kind === 'open-app') return INITIAL_SIM_STATE;
   let state = applySimAction(INITIAL_SIM_STATE, { kind: 'open-app', app: 'explorer' });
-  state = applySimAction(state, { kind: 'open-app', app: 'settings' });
+  state = applySimAction(state, { kind: 'open-app', app: action ? 'settings' : 'notepad' });
   return state;
 }
