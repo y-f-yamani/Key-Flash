@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { GraduationCap, RotateCcw } from 'lucide-react';
+import { GraduationCap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,13 +17,15 @@ import {
 } from '@/core/simulator';
 import type { ShortcutDefinition } from '@/core/content';
 import { SimulatorDesktop } from '@/features/simulator/desktop';
+import { ExpandableScreen } from '@/features/simulator/expandable-screen';
 import { useI18n } from '@/lib/i18n/provider';
+import { editingDemoFor } from './editing-demos';
+import { EditorDemo } from './text-editor-demo';
 
 /**
  * The "Learn" half of a lesson: before any testing, walk through each
- * shortcut showing the highlighted keyboard and — for simulator-capable
- * shortcuts — a live preview that performs the action so the learner SEES
- * what it does. Then hand off to the drill (the "test").
+ * shortcut showing the Windows 11 screen reacting (so the effect is concrete)
+ * and the highlighted keyboard. Then hand off to the drill (the "test").
  */
 export function LessonTeach({
   shortcuts,
@@ -36,7 +38,6 @@ export function LessonTeach({
   const [index, setIndex] = useState(0);
   const shortcut = shortcuts[index];
   const isLast = index >= shortcuts.length - 1;
-  const action = actionForShortcut(shortcut.id);
 
   return (
     <Card data-testid="lesson-teach">
@@ -48,15 +49,10 @@ export function LessonTeach({
         <p className="max-w-md text-muted-foreground">{shortcut.description[locale]}</p>
 
         <KeyCombo keys={shortcut.keys} size="lg" />
-        <KeyboardView keys={shortcut.keys} />
 
-        {/* Always show the Windows 11 screen so the effect is concrete. */}
-        <TeachSim
-          key={shortcut.id}
-          action={action}
-          toastMessage={shortcut.name[locale]}
-          replayLabel={dict.learn.replay}
-        />
+        {/* Simulator above the keyboard: see the effect, then the keys. */}
+        <TeachPreview key={shortcut.id} shortcut={shortcut} />
+        <KeyboardView keys={shortcut.keys} />
 
         <div className="flex w-full max-w-md items-center gap-3">
           <ProgressBar value={(index + 1) / shortcuts.length} className="flex-1" />
@@ -79,52 +75,51 @@ export function LessonTeach({
 }
 
 /**
- * Auto-playing Windows 11 preview for one shortcut. Mounted with a key per
- * shortcut, so it starts seeded and animates once; "Replay" re-arms. Window
- * shortcuts perform their action on screen; shortcuts with no window effect
- * (Copy, Save, …) raise a Windows notification toast instead — so there is
- * always a Windows screen to watch.
+ * The Windows 11 preview for one shortcut. Window shortcuts perform their
+ * action on screen; editing shortcuts animate a Notepad document (real
+ * copy/paste/undo/save); the rest raise a notification toast. Mounted with a
+ * key per shortcut so it starts fresh and animates once; Replay re-arms.
  */
-function TeachSim({
-  action,
-  toastMessage,
-  replayLabel,
-}: {
-  action: SimAction | null;
-  toastMessage: string;
-  replayLabel: string;
-}) {
-  const [state, setState] = useState<SimState>(() => seedFor(action));
-  const [snipSeq, setSnipSeq] = useState(0);
-  const [toast, setToast] = useState<string | null>(null);
+function TeachPreview({ shortcut }: { shortcut: ShortcutDefinition }) {
+  const { locale, dict } = useI18n();
+  const editing = editingDemoFor(shortcut.id);
+  const action = actionForShortcut(shortcut.id);
+
+  const [after, setAfter] = useState(false);
   const [arm, setArm] = useState(0);
 
-  // Show the seeded "before", then perform the action (or raise a toast).
+  // Show the "before", then flip to "after" so the change is visible.
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      if (action) {
-        if (action.kind === 'snip') setSnipSeq((n) => n + 1);
-        setState(applySimAction(seedFor(action), action));
-      } else {
-        setToast(toastMessage);
-      }
-    }, 650);
+    const timer = window.setTimeout(() => setAfter(true), 750);
     return () => window.clearTimeout(timer);
-  }, [action, toastMessage, arm]);
+  }, [arm]);
 
   function replay() {
-    setState(seedFor(action));
-    setToast(null);
+    setAfter(false);
     setArm((n) => n + 1);
   }
 
+  let screen;
+  if (editing) {
+    screen = <EditorDemo kind={editing} after={after} />;
+  } else if (action) {
+    const state = after ? applySimAction(seedFor(action), action) : seedFor(action);
+    const snipSeq = action.kind === 'snip' && after ? 1 : 0;
+    screen = <SimulatorDesktop state={state} snipSeq={snipSeq} />;
+  } else {
+    screen = (
+      <SimulatorDesktop
+        state={seedFor(null)}
+        snipSeq={0}
+        toast={after ? shortcut.name[locale] : null}
+      />
+    );
+  }
+
   return (
-    <div className="flex w-full flex-col items-center gap-2">
-      <SimulatorDesktop state={state} snipSeq={snipSeq} toast={toast} />
-      <Button variant="ghost" size="sm" onClick={replay}>
-        <RotateCcw className="size-3.5" /> {replayLabel}
-      </Button>
-    </div>
+    <ExpandableScreen onReplay={replay} replayLabel={dict.learn.replay} expandLabel={dict.learn.expand}>
+      {screen}
+    </ExpandableScreen>
   );
 }
 

@@ -66,6 +66,7 @@ export const ar: Dictionary = {
     next: 'التالي',
     practice: 'تدرّب',
     replay: 'إعادة',
+    expand: 'توسيع',
   },
 
   path: {

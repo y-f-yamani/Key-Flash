@@ -71,6 +71,7 @@ export const en = {
     next: 'Next',
     practice: 'Practice',
     replay: 'Replay',
+    expand: 'Expand',
   },
 
   path: {

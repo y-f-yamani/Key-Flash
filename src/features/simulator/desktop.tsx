@@ -1,5 +1,6 @@
 'use client';
 
+import { type ReactNode } from 'react';
 import {
   Bell,
   ClipboardList,
@@ -71,44 +72,95 @@ export function SimulatorDesktop({
         />
       )}
 
-      {/* taskbar */}
-      <div className="absolute inset-x-0 bottom-0 flex h-12 items-center justify-between border-t border-white/10 bg-[#1c1c1c]/70 px-3 backdrop-blur-xl">
-        <div className="w-28" />
-        <div className="flex items-center gap-1.5">
-          <TaskbarButton label="Start">
-            <StartOrb />
-          </TaskbarButton>
-          <TaskbarButton label="Search">
-            <Search className="size-4 text-white/80" aria-hidden />
-          </TaskbarButton>
-          {(Object.keys(APP_META) as SimAppId[]).map((app) => {
-            const open = state.windows.some(
-              (w) => w.app === app && w.desktop === state.activeDesktop,
-            );
-            const Icon = APP_META[app].icon;
-            return (
-              <TaskbarButton key={app} label={APP_META[app].label} open={open} testId={`taskbar-${app}`}>
-                <Icon className={cn('size-4', APP_META[app].color)} aria-hidden />
-              </TaskbarButton>
-            );
-          })}
-        </div>
-        <div className="flex w-28 items-center justify-end gap-2 text-white/90">
-          <span className="flex items-center gap-1" data-testid="sim-desktops">
-            {Array.from({ length: state.desktopCount }).map((_, i) => (
-              <span
-                key={i}
-                className={cn(
-                  'h-1.5 w-1.5 rounded-full bg-white/40',
-                  i === state.activeDesktop && 'w-3 bg-white',
-                )}
-              />
-            ))}
-          </span>
-          <div className="flex flex-col items-end leading-tight">
-            <span className="text-[11px] tabular-nums">09:41</span>
-            <span className="text-[9px] text-white/70 tabular-nums">14/06/2026</span>
-          </div>
+      <Taskbar
+        openApps={openAppSet(state)}
+        desktopCount={state.desktopCount}
+        activeDesktop={state.activeDesktop}
+      />
+    </div>
+  );
+}
+
+/**
+ * A bare Windows 11 screen frame (bloom wallpaper + taskbar) hosting custom
+ * window content. Used by lesson previews that animate their own windows
+ * (e.g. the text-editor demo) rather than driving full SimState.
+ */
+export function WindowsScreen({
+  children,
+  openApps,
+}: {
+  children: ReactNode;
+  openApps?: ReadonlySet<SimAppId>;
+}) {
+  return (
+    <div
+      dir="ltr"
+      data-testid="sim-desktop"
+      className="relative aspect-video w-full select-none overflow-hidden rounded-xl shadow-2xl ring-1 ring-black/40"
+    >
+      <Wallpaper />
+      <div className="absolute inset-x-0 bottom-12 top-0">{children}</div>
+      <Taskbar openApps={openApps ?? new Set()} desktopCount={1} activeDesktop={0} />
+    </div>
+  );
+}
+
+function openAppSet(state: SimState): Set<SimAppId> {
+  const set = new Set<SimAppId>();
+  for (const w of state.windows) if (w.desktop === state.activeDesktop) set.add(w.app);
+  return set;
+}
+
+/** The shared Windows 11 taskbar: Start orb, search, app icons, clock. */
+export function Taskbar({
+  openApps,
+  desktopCount,
+  activeDesktop,
+}: {
+  openApps: ReadonlySet<SimAppId>;
+  desktopCount: number;
+  activeDesktop: number;
+}) {
+  return (
+    <div className="absolute inset-x-0 bottom-0 flex h-12 items-center justify-between border-t border-white/10 bg-[#1c1c1c]/70 px-3 backdrop-blur-xl">
+      <div className="w-28" />
+      <div className="flex items-center gap-1.5">
+        <TaskbarButton label="Start">
+          <StartOrb />
+        </TaskbarButton>
+        <TaskbarButton label="Search">
+          <Search className="size-4 text-white/80" aria-hidden />
+        </TaskbarButton>
+        {(Object.keys(APP_META) as SimAppId[]).map((app) => {
+          const Icon = APP_META[app].icon;
+          return (
+            <TaskbarButton
+              key={app}
+              label={APP_META[app].label}
+              open={openApps.has(app)}
+              testId={`taskbar-${app}`}
+            >
+              <Icon className={cn('size-4', APP_META[app].color)} aria-hidden />
+            </TaskbarButton>
+          );
+        })}
+      </div>
+      <div className="flex w-28 items-center justify-end gap-2 text-white/90">
+        <span className="flex items-center gap-1" data-testid="sim-desktops">
+          {Array.from({ length: desktopCount }).map((_, i) => (
+            <span
+              key={i}
+              className={cn(
+                'h-1.5 w-1.5 rounded-full bg-white/40',
+                i === activeDesktop && 'w-3 bg-white',
+              )}
+            />
+          ))}
+        </span>
+        <div className="flex flex-col items-end leading-tight">
+          <span className="text-[11px] tabular-nums">09:41</span>
+          <span className="text-[9px] text-white/70 tabular-nums">14/06/2026</span>
         </div>
       </div>
     </div>
@@ -116,7 +168,7 @@ export function SimulatorDesktop({
 }
 
 /** Windows 11 "Bloom" wallpaper, approximated with layered light and petals. */
-function Wallpaper() {
+export function Wallpaper() {
   return (
     <div className="absolute inset-0 bg-gradient-to-br from-[#15205c] via-[#1b2e8a] to-[#0a1340]">
       <svg className="absolute inset-0 h-full w-full" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" aria-hidden>
@@ -165,7 +217,7 @@ function TaskbarButton({
   open,
   testId,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   label: string;
   open?: boolean;
   testId?: string;
@@ -184,7 +236,7 @@ function TaskbarButton({
   );
 }
 
-function WindowControls() {
+export function WindowControls() {
   return (
     <span className="flex items-center text-white/70" aria-hidden>
       <span className="px-2 text-[11px] leading-6 transition-colors hover:bg-white/10">─</span>

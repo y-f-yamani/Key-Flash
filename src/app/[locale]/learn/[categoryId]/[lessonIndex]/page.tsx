@@ -23,7 +23,7 @@ export default async function LessonPage({
   if (!lesson) notFound();
 
   return (
-    <div className="mx-auto w-full max-w-2xl">
+    <div className="mx-auto w-full max-w-3xl">
       <LessonRunner lesson={lesson} />
     </div>
   );
