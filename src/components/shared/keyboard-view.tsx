@@ -124,19 +124,19 @@ export function KeyboardView({ keys, className }: { keys: readonly KeyChord[]; c
       dir="ltr"
       data-testid="keyboard-view"
       className={cn(
-        'mx-auto flex w-full max-w-xl select-none flex-col gap-1 rounded-2xl p-2 shadow-2xl ring-1 ring-black/50 sm:gap-1.5 sm:p-2.5',
+        'mx-auto flex w-full max-w-xl select-none flex-col gap-1 rounded-xl p-1.5 shadow-2xl ring-1 ring-black/50 sm:p-2',
         'bg-gradient-to-b from-neutral-800 to-neutral-950',
         className,
       )}
     >
       {ROWS.map((row, i) => (
-        <div key={i} className="flex gap-1 sm:gap-1.5">
+        <div key={i} className="flex gap-1">
           {row.map((key) => (
             <KeyCell key={key.code} keyDef={key} lit={lit.has(key.code)} main={main.has(key.code)} />
           ))}
         </div>
       ))}
-      <div className="mt-0.5 flex justify-center gap-1 sm:gap-1.5">
+      <div className="flex justify-center gap-1">
         {NAV_ROW.map((key) => (
           <KeyCell key={key.code} keyDef={key} lit={lit.has(key.code)} main={main.has(key.code)} small />
         ))}
@@ -162,8 +162,8 @@ function KeyCell({
       style={{ flexGrow: keyDef.w ?? 1, flexBasis: 0 }}
       data-lit={lit ? (main ? 'main' : 'mod') : undefined}
       className={cn(
-        'flex items-center justify-center rounded-md border-b-2 text-center font-medium leading-none transition-all duration-200 sm:rounded-lg sm:border-b-[3px]',
-        small ? 'h-5 text-[0.5rem] sm:h-6 sm:text-[0.6rem]' : 'h-6 text-[0.55rem] sm:h-8 sm:text-[0.7rem]',
+        'flex items-center justify-center rounded-md border-b-2 text-center font-medium leading-none transition-all duration-200',
+        small ? 'h-4 text-[0.45rem] sm:h-5 sm:text-[0.55rem]' : 'h-5 text-[0.5rem] sm:h-6 sm:text-[0.6rem]',
         lit
           ? main
             ? 'z-10 scale-[1.08] border-violet-900 bg-gradient-to-b from-violet-400 to-violet-600 text-white shadow-[0_0_20px_4px_rgba(139,92,246,0.75)]'

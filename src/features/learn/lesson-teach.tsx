@@ -41,26 +41,28 @@ export function LessonTeach({
 
   return (
     <Card data-testid="lesson-teach">
-      <CardContent className="flex flex-col gap-3 p-4 sm:p-5">
+      <CardContent className="flex flex-col gap-2 p-3 sm:p-4">
         {/* compact header */}
-        <div className="flex flex-col items-center gap-1.5 text-center">
+        <div className="flex flex-col items-center gap-1 text-center">
           <Badge variant="accent">
             <GraduationCap className="size-3.5" /> {dict.learn.learnBadge}
           </Badge>
-          <h2 className="text-xl font-bold sm:text-2xl">{shortcut.name[locale]}</h2>
+          <h2 className="text-lg font-bold sm:text-xl">{shortcut.name[locale]}</h2>
           <p className="max-w-2xl text-sm text-muted-foreground">{shortcut.description[locale]}</p>
-          <KeyCombo keys={shortcut.keys} size="lg" />
+          <KeyCombo keys={shortcut.keys} />
         </div>
 
-        {/* Side by side on desktop so it fits one screen; stacks (sim above
-            keyboard) on narrow widths. */}
-        <div className="grid items-center gap-4 lg:grid-cols-2">
-          <TeachPreview key={shortcut.id} shortcut={shortcut} />
-          <KeyboardView keys={shortcut.keys} />
+        {/* Simulator above the keyboard; both kept compact so the whole
+            lesson fits one screen without scrolling. */}
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-full max-w-sm">
+            <TeachPreview key={shortcut.id} shortcut={shortcut} />
+          </div>
+          <KeyboardView keys={shortcut.keys} className="max-w-sm" />
         </div>
 
         {/* compact footer */}
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-1.5">
           <div className="flex w-full max-w-md items-center gap-3">
             <ProgressBar value={(index + 1) / shortcuts.length} className="flex-1" />
             <span className="text-sm tabular-nums text-muted-foreground">
