@@ -6,8 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { KeyCombo } from '@/components/shared/key-combo';
-import { KeyboardView } from '@/components/shared/keyboard-view';
 import type { ShortcutDefinition } from '@/core/content';
+import { ShortcutEffect } from '@/features/simulator/shortcut-effect';
 import { useI18n } from '@/lib/i18n/provider';
 import { useKeyCapture, type CaptureResult } from './use-key-capture';
 import { WinKeyHint } from './win-key-mode';
@@ -18,9 +18,10 @@ interface CaptureDrillProps {
 }
 
 /**
- * One live-capture drill: shows the action, the user must press the real
- * keys. Feedback (correct/wrong + reaction time) then a Next button so the
- * learner controls pacing.
+ * One live-capture drill. The Windows 11 screen is shown the whole time and
+ * REACTS when you press the shortcut correctly — practice and the simulator
+ * are the same moment. Feedback (correct/wrong + reaction time) then a Next
+ * button so the learner controls pacing.
  */
 export function CaptureDrill({ shortcut, onResult }: CaptureDrillProps) {
   const { locale, dict } = useI18n();
@@ -45,11 +46,18 @@ export function CaptureDrill({ shortcut, onResult }: CaptureDrillProps) {
     onResult({ correct: result.correct, reactionMs: result.reactionMs });
   }
 
+  const succeeded = result?.correct === true;
+
   return (
     <Card ref={cardRef} data-testid="capture-drill">
-      <CardContent className="flex flex-col items-center gap-6 p-8 text-center">
-        <h2 className="text-2xl font-bold">{shortcut.name[locale]}</h2>
-        <p className="text-muted-foreground">{shortcut.description[locale]}</p>
+      <CardContent className="flex flex-col items-center gap-4 p-5 text-center sm:p-6">
+        <h2 className="text-xl font-bold sm:text-2xl">{shortcut.name[locale]}</h2>
+        <p className="text-sm text-muted-foreground">{shortcut.description[locale]}</p>
+
+        {/* Live Windows 11 screen — performs the action the instant you nail it. */}
+        <div className="w-full max-w-2xl">
+          <ShortcutEffect shortcut={shortcut} after={succeeded} locale={locale} />
+        </div>
 
         {result === null ? (
           <>
@@ -60,7 +68,7 @@ export function CaptureDrill({ shortcut, onResult }: CaptureDrillProps) {
             <WinKeyHint show={needsMetaRemap} />
           </>
         ) : (
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-3">
             {result.correct ? (
               <Badge variant="success" className="px-4 py-1.5 text-sm">
                 <Check className="size-4" /> {dict.practice.correctLabel}{' '}
@@ -71,18 +79,17 @@ export function CaptureDrill({ shortcut, onResult }: CaptureDrillProps) {
                 <Badge variant="danger" className="px-4 py-1.5 text-sm">
                   <X className="size-4" /> {dict.practice.wrongLabel}
                 </Badge>
-                {result.pressed && (
-                  <p className="text-sm text-muted-foreground">
-                    {dict.practice.youPressed} <KeyCombo keys={[result.pressed]} />
-                  </p>
-                )}
+                <p className="flex flex-wrap items-center justify-center gap-2 text-sm text-muted-foreground">
+                  {result.pressed && (
+                    <>
+                      {dict.practice.youPressed} <KeyCombo keys={[result.pressed]} />
+                    </>
+                  )}
+                  <span className="mx-1">·</span>
+                  {dict.practice.expected} <KeyCombo keys={shortcut.keys} />
+                </p>
               </>
             )}
-            <div className="flex w-full flex-col items-center gap-2">
-              <span className="text-sm text-muted-foreground">{dict.practice.expected}</span>
-              <KeyCombo keys={shortcut.keys} size="lg" />
-              <KeyboardView keys={shortcut.keys} className="mt-2" />
-            </div>
             <Button autoFocus onClick={next} data-testid="drill-next">
               {dict.practice.next}
             </Button>

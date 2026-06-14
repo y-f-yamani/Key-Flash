@@ -29,7 +29,7 @@ const ROWS: Key[][] = [
   [
     { code: 'Tab', w: 1.5 },
     ...letters('QWERTYUIOP'),
-    { code: 'Delete', w: 1.5 },
+    { code: 'Backslash', w: 1.5 },
   ],
   [
     { code: 'CapsLock', w: 1.8 },
@@ -56,17 +56,8 @@ const ROWS: Key[][] = [
   ],
 ];
 
-/** Navigation + arrow cluster shown beneath the main block. */
-const NAV_ROW: Key[] = [
-  { code: 'Home' },
-  { code: 'End' },
-  { code: 'PageUp' },
-  { code: 'PageDown' },
-  { code: 'ArrowLeft' },
-  { code: 'ArrowUp' },
-  { code: 'ArrowDown' },
-  { code: 'ArrowRight' },
-];
+/** Navigation keys shown beside the arrow cluster (real-keyboard grouping). */
+const NAV_KEYS = ['Home', 'PageUp', 'End', 'PageDown', 'Delete'];
 
 const LABELS: Record<string, string> = {
   Escape: 'Esc',
@@ -89,6 +80,7 @@ const LABELS: Record<string, string> = {
   End: 'End',
   PageUp: 'PgUp',
   PageDown: 'PgDn',
+  Backslash: '\\',
 };
 
 const MODIFIER_CODES: Record<Modifier, string[]> = {
@@ -136,39 +128,62 @@ export function KeyboardView({ keys, className }: { keys: readonly KeyChord[]; c
           ))}
         </div>
       ))}
-      <div className="flex justify-center gap-1">
-        {NAV_ROW.map((key) => (
-          <KeyCell key={key.code} keyDef={key} lit={lit.has(key.code)} main={main.has(key.code)} small />
-        ))}
+
+      {/* Nav keys + a real inverted-T arrow cluster. */}
+      <div className="mt-1 flex items-end justify-center gap-3">
+        <div className="grid grid-cols-2 gap-1">
+          {NAV_KEYS.map((code) => (
+            <ClusterKey key={code} code={code} lit={lit.has(code)} main={main.has(code)} />
+          ))}
+        </div>
+        <div className="flex flex-col items-center gap-1">
+          <ClusterKey code="ArrowUp" lit={lit.has('ArrowUp')} main={main.has('ArrowUp')} />
+          <div className="flex gap-1">
+            <ClusterKey code="ArrowLeft" lit={lit.has('ArrowLeft')} main={main.has('ArrowLeft')} />
+            <ClusterKey code="ArrowDown" lit={lit.has('ArrowDown')} main={main.has('ArrowDown')} />
+            <ClusterKey code="ArrowRight" lit={lit.has('ArrowRight')} main={main.has('ArrowRight')} />
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function KeyCell({
-  keyDef,
-  lit,
-  main,
-  small,
-}: {
-  keyDef: Key;
-  lit: boolean;
-  main: boolean;
-  small?: boolean;
-}) {
+/** Shared keycap colors so the main rows and the cluster keys match. */
+function keyClasses(lit: boolean, main: boolean): string {
+  if (!lit) {
+    return 'border-black/60 bg-gradient-to-b from-neutral-600 to-neutral-700 text-neutral-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]';
+  }
+  return main
+    ? 'z-10 scale-[1.08] border-violet-900 bg-gradient-to-b from-violet-400 to-violet-600 text-white shadow-[0_0_20px_4px_rgba(139,92,246,0.75)]'
+    : 'border-cyan-800 bg-gradient-to-b from-cyan-400 to-cyan-600 text-white shadow-[0_0_14px_2px_rgba(34,211,238,0.55)]';
+}
+
+/** A fixed-size keycap for the nav/arrow cluster (so the inverted-T aligns). */
+function ClusterKey({ code, lit, main }: { code: string; lit: boolean; main: boolean }) {
+  const label = LABELS[code] ?? keyLabel(code);
+  return (
+    <span
+      data-lit={lit ? (main ? 'main' : 'mod') : undefined}
+      className={cn(
+        'flex h-5 w-7 items-center justify-center rounded-md border-b-2 text-center text-[0.5rem] font-medium leading-none transition-all duration-200 sm:h-6 sm:w-8 sm:text-[0.55rem]',
+        keyClasses(lit, main),
+      )}
+    >
+      {label}
+    </span>
+  );
+}
+
+function KeyCell({ keyDef, lit, main }: { keyDef: Key; lit: boolean; main: boolean }) {
   const label = LABELS[keyDef.code] ?? keyLabel(keyDef.code);
   return (
     <span
       style={{ flexGrow: keyDef.w ?? 1, flexBasis: 0 }}
       data-lit={lit ? (main ? 'main' : 'mod') : undefined}
       className={cn(
-        'flex items-center justify-center rounded-md border-b-2 text-center font-medium leading-none transition-all duration-200',
-        small ? 'h-4 text-[0.45rem] sm:h-5 sm:text-[0.55rem]' : 'h-5 text-[0.5rem] sm:h-6 sm:text-[0.6rem]',
-        lit
-          ? main
-            ? 'z-10 scale-[1.08] border-violet-900 bg-gradient-to-b from-violet-400 to-violet-600 text-white shadow-[0_0_20px_4px_rgba(139,92,246,0.75)]'
-            : 'border-cyan-800 bg-gradient-to-b from-cyan-400 to-cyan-600 text-white shadow-[0_0_14px_2px_rgba(34,211,238,0.55)]'
-          : 'border-black/60 bg-gradient-to-b from-neutral-600 to-neutral-700 text-neutral-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]',
+        'flex h-5 items-center justify-center rounded-md border-b-2 text-center text-[0.5rem] font-medium leading-none transition-all duration-200 sm:h-6 sm:text-[0.6rem]',
+        keyClasses(lit, main),
       )}
     >
       {label}

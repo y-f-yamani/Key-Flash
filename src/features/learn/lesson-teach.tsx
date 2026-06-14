@@ -8,19 +8,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { KeyCombo } from '@/components/shared/key-combo';
 import { KeyboardView } from '@/components/shared/keyboard-view';
-import {
-  INITIAL_SIM_STATE,
-  actionForShortcut,
-  applySimAction,
-  type SimAction,
-  type SimState,
-} from '@/core/simulator';
 import type { ShortcutDefinition } from '@/core/content';
-import { SimulatorDesktop } from '@/features/simulator/desktop';
 import { ExpandableScreen } from '@/features/simulator/expandable-screen';
 import { useI18n } from '@/lib/i18n/provider';
-import { editingDemoFor } from './editing-demos';
-import { EditorDemo } from './text-editor-demo';
+import { ShortcutEffect } from '@/features/simulator/shortcut-effect';
 
 /**
  * The "Learn" half of a lesson: before any testing, walk through each
@@ -100,16 +91,11 @@ export function LessonTeach({
 }
 
 /**
- * The Windows 11 preview for one shortcut. Window shortcuts perform their
- * action on screen; editing shortcuts animate a Notepad document (real
- * copy/paste/undo/save); the rest raise a notification toast. Mounted with a
- * key per shortcut so it starts fresh and animates once; Replay re-arms.
+ * The Windows 11 preview for one shortcut, auto-playing the effect once.
+ * Mounted with a key per shortcut so it starts fresh; Replay re-arms.
  */
 function TeachPreview({ shortcut }: { shortcut: ShortcutDefinition }) {
   const { locale, dict } = useI18n();
-  const editing = editingDemoFor(shortcut.id);
-  const action = actionForShortcut(shortcut.id);
-
   const [after, setAfter] = useState(false);
   const [arm, setArm] = useState(0);
 
@@ -124,39 +110,9 @@ function TeachPreview({ shortcut }: { shortcut: ShortcutDefinition }) {
     setArm((n) => n + 1);
   }
 
-  let screen;
-  if (editing) {
-    screen = <EditorDemo kind={editing} after={after} />;
-  } else if (action) {
-    const state = after ? applySimAction(seedFor(action), action) : seedFor(action);
-    const snipSeq = action.kind === 'snip' && after ? 1 : 0;
-    screen = <SimulatorDesktop state={state} snipSeq={snipSeq} />;
-  } else {
-    screen = (
-      <SimulatorDesktop
-        state={seedFor(null)}
-        snipSeq={0}
-        toast={after ? shortcut.name[locale] : null}
-      />
-    );
-  }
-
   return (
     <ExpandableScreen onReplay={replay} replayLabel={dict.learn.replay} expandLabel={dict.learn.expand}>
-      {screen}
+      <ShortcutEffect shortcut={shortcut} after={after} locale={locale} />
     </ExpandableScreen>
   );
-}
-
-/**
- * A meaningful before-state for the preview: app-opening shortcuts start on a
- * bare desktop so the window appearing is visible; everything else starts
- * with windows open so snaps, switches, desktop tricks and notifications have
- * a populated screen behind them.
- */
-function seedFor(action: SimAction | null): SimState {
-  if (action?.kind === 'open-app') return INITIAL_SIM_STATE;
-  let state = applySimAction(INITIAL_SIM_STATE, { kind: 'open-app', app: 'explorer' });
-  state = applySimAction(state, { kind: 'open-app', app: action ? 'settings' : 'notepad' });
-  return state;
 }

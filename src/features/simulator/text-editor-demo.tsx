@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { Clipboard, ClipboardCheck, FileText } from 'lucide-react';
-import { WindowControls, WindowsScreen } from '@/features/simulator/desktop';
+import { WindowControls, WindowsScreen } from './desktop';
 import { cn } from '@/lib/utils';
 import type { EditingDemoKind } from './editing-demos';
 
