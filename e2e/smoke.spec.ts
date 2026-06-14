@@ -32,9 +32,10 @@ test.describe('smoke', () => {
     await page.getByRole('button', { name: 'Start', exact: true }).first().click();
     await expect(page).toHaveURL(/\/en\/learn\/essentials\/0$/);
 
-    // A lesson now opens in the LEARN phase (teach cards) before testing.
+    // A lesson now opens in the LEARN phase (teach cards) before testing,
+    // with the Windows 11 simulator preview shown.
     await expect(page.getByTestId('lesson-teach')).toBeVisible();
-    await expect(page.getByTestId('keyboard-view').first()).toBeVisible();
+    await expect(page.getByTestId('sim-desktop').first()).toBeVisible();
 
     // Click through Learn into Practice.
     for (let i = 0; i < 8; i++) {

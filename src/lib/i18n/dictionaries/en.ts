@@ -72,6 +72,8 @@ export const en = {
     practice: 'Practice',
     replay: 'Replay',
     expand: 'Expand',
+    showKeyboard: 'Show keyboard',
+    hideKeyboard: 'Hide keyboard',
   },
 
   path: {

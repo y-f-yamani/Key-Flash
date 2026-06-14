@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { GraduationCap } from 'lucide-react';
+import { ChevronDown, ChevronUp, GraduationCap, Keyboard } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -36,6 +36,7 @@ export function LessonTeach({
 }) {
   const { locale, dict } = useI18n();
   const [index, setIndex] = useState(0);
+  const [showKeyboard, setShowKeyboard] = useState(false);
   const shortcut = shortcuts[index];
   const isLast = index >= shortcuts.length - 1;
 
@@ -52,13 +53,28 @@ export function LessonTeach({
           <KeyCombo keys={shortcut.keys} />
         </div>
 
-        {/* Simulator above the keyboard; both kept compact so the whole
-            lesson fits one screen without scrolling. */}
-        <div className="flex flex-col items-center gap-2">
-          <div className="w-full max-w-sm">
+        {/* Big simulator (the focus), with a collapsible keyboard below so
+            the lesson fits one screen by default; expand the keyboard to
+            study the keys. */}
+        <div className="flex w-full flex-col items-center gap-2">
+          <div className="w-full max-w-2xl">
             <TeachPreview key={shortcut.id} shortcut={shortcut} />
           </div>
-          <KeyboardView keys={shortcut.keys} className="max-w-sm" />
+
+          {showKeyboard ? (
+            <div className="flex w-full flex-col items-center gap-1.5">
+              <KeyboardView keys={shortcut.keys} className="max-w-2xl" />
+              <Button variant="ghost" size="sm" onClick={() => setShowKeyboard(false)}>
+                <Keyboard className="size-3.5" /> {dict.learn.hideKeyboard}
+                <ChevronUp className="size-3.5" />
+              </Button>
+            </div>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => setShowKeyboard(true)}>
+              <Keyboard className="size-3.5" /> {dict.learn.showKeyboard}
+              <ChevronDown className="size-3.5" />
+            </Button>
+          )}
         </div>
 
         {/* compact footer */}

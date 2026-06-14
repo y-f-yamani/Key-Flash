@@ -67,6 +67,8 @@ export const ar: Dictionary = {
     practice: 'تدرّب',
     replay: 'إعادة',
     expand: 'توسيع',
+    showKeyboard: 'إظهار لوحة المفاتيح',
+    hideKeyboard: 'إخفاء لوحة المفاتيح',
   },
 
   path: {
