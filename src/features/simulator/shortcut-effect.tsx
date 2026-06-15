@@ -29,7 +29,7 @@ export function ShortcutEffect({
   locale: Locale;
 }) {
   const editing = editingDemoFor(shortcut.id);
-  if (editing) return <EditorDemo kind={editing} after={after} />;
+  if (editing) return <EditorDemo kind={editing} play={after} />;
 
   const action = actionForShortcut(shortcut.id);
   if (action) {
